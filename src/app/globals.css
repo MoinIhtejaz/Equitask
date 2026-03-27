@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(47, 107, 79, 0.08), transparent 35%),
+    radial-gradient(circle at 90% 0%, rgba(31, 53, 72, 0.08), transparent 28%),
+    #f5f7fb;
+  color: #13212f;
+  font-family: var(--font-body), ui-sans-serif, system-ui;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading), ui-sans-serif, system-ui;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
