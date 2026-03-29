@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
+import { VotingBreakdown } from "@/components/voting/VotingBreakdown";
 import { VotingPanel } from "@/components/voting/VotingPanel";
 import { STATUS_LABELS, STATUS_ORDER } from "@/lib/constants";
 import { formatDate, formatDateTime } from "@/lib/utils";
@@ -191,13 +192,17 @@ export function TaskDetailClient({
           </div>
         </Card>
 
-        <VotingPanel
-          task={task}
-          members={members}
-          votes={votes}
-          currentUserId={currentUserId}
-          mode={mode}
-        />
+        {task.votingClosed ? (
+          <VotingBreakdown task={task} members={members} votes={votes} />
+        ) : (
+          <VotingPanel
+            task={task}
+            members={members}
+            votes={votes}
+            currentUserId={currentUserId}
+            mode={mode}
+          />
+        )}
 
         <Card>
           <h3 className="mb-3 text-lg font-semibold text-ink">Comments</h3>

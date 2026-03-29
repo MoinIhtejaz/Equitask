@@ -10,15 +10,6 @@ function buildActivityFeed(snapshot: WorkspaceSnapshot["data"]): WorkspaceSnapsh
   const memberMap = new Map(snapshot.members.map((member) => [member.id, member.name]));
   const taskMap = new Map(snapshot.tasks.map((task) => [task.id, task.title]));
 
-  const voteEvents = snapshot.votes.map((vote) => ({
-    id: `activity-vote-${vote.id}`,
-    memberId: vote.memberId,
-    message: `${memberMap.get(vote.memberId) ?? "A member"} voted ${vote.value} on ${
-      taskMap.get(vote.taskId) ?? "a task"
-    }`,
-    createdAt: vote.createdAt
-  }));
-
   const commentEvents = snapshot.comments.map((comment) => ({
     id: `activity-comment-${comment.id}`,
     memberId: comment.memberId,
@@ -35,7 +26,7 @@ function buildActivityFeed(snapshot: WorkspaceSnapshot["data"]): WorkspaceSnapsh
     createdAt: task.updatedAt
   }));
 
-  return [...voteEvents, ...commentEvents, ...taskEvents]
+  return [...commentEvents, ...taskEvents]
     .sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
     .slice(0, 12);
 }

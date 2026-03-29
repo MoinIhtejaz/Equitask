@@ -1,12 +1,12 @@
 import { AnalyticsCharts } from "@/components/analytics/AnalyticsCharts";
 import { FairnessScoreCard } from "@/components/shared/FairnessScoreCard";
 import { Card } from "@/components/ui/Card";
-import { requireWorkspaceSession } from "@/lib/auth/guards";
+import { requireTeamSession } from "@/lib/auth/guards";
 import { buildAnalyticsSnapshot } from "@/services/analyticsService";
 import { getWorkspaceSnapshot } from "@/services/workspaceService";
 
 export default async function AnalyticsPage() {
-  const session = requireWorkspaceSession();
+  const session = requireTeamSession();
   const snapshot = await getWorkspaceSnapshot(session);
 
   const analytics = buildAnalyticsSnapshot(
@@ -17,10 +17,12 @@ export default async function AnalyticsPage() {
   );
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <h1 className="text-2xl font-bold text-ink">Team Analytics</h1>
-        <p className="mt-1 text-slate-600">
+    <div className="space-y-5">
+      <Card className="relative overflow-hidden">
+        <div className="absolute inset-y-0 right-0 w-56 bg-[radial-gradient(circle_at_center,rgba(195,154,95,0.16),transparent_68%)]" />
+        <p className="section-kicker">Team intelligence</p>
+        <h1 className="mt-3 text-3xl font-semibold text-ink">Team Analytics</h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
           Explore contribution, workload distribution, project progress, voting alignment, and risk.
         </p>
       </Card>
@@ -30,9 +32,10 @@ export default async function AnalyticsPage() {
         <div className="space-y-4">
           <FairnessScoreCard fairness={snapshot.fairness} />
           <Card>
-            <h3 className="mb-2 text-lg font-semibold text-ink">Risk Snapshot</h3>
-            <p className="text-sm text-slate-600">Deadline risk level: {analytics.deadlineRisk}</p>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="section-kicker">Risk snapshot</p>
+            <h3 className="mt-3 text-2xl font-semibold text-ink">Delivery risk</h3>
+            <p className="mt-3 text-sm leading-7 text-slate-600">Deadline risk level: {analytics.deadlineRisk}</p>
+            <p className="mt-2 text-sm leading-7 text-slate-600">
               Voting agreement chart and workload distribution update from the active dataset.
             </p>
           </Card>

@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 
 import { TaskDetailClient } from "@/components/shared/TaskDetailClient";
-import { requireWorkspaceSession } from "@/lib/auth/guards";
+import { requireTeamSession } from "@/lib/auth/guards";
 import { recommendAssignees } from "@/services/recommendationService";
 import { getWorkspaceSnapshot } from "@/services/workspaceService";
 
 export default async function TaskDetailPage({ params }: { params: { taskId: string } }) {
-  const session = requireWorkspaceSession();
+  const session = requireTeamSession();
   const snapshot = await getWorkspaceSnapshot(session);
 
   const task = snapshot.data.tasks.find((candidate) => candidate.id === params.taskId);

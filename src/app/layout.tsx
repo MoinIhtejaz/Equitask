@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 
 import "@/app/globals.css";
+import { SplashScreen } from "@/components/layout/SplashScreen";
 
 const bodyFont = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -21,7 +22,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${bodyFont.variable} ${headingFont.variable}`}>{children}</body>
+      <body className={`${bodyFont.variable} ${headingFont.variable} antialiased`}>
+        <SplashScreen />
+        {children}
+      </body>
     </html>
   );
 }

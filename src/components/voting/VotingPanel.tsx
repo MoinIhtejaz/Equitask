@@ -45,6 +45,15 @@ export function VotingPanel({ task, members, votes, currentUserId, mode }: Votin
       if (!response.ok) {
         throw new Error(payload.error || "Could not save vote.");
       }
+
+      if (Array.isArray(payload.votes) && payload.votes.length >= members.length) {
+        await fetch(`/api/tasks/${task.id}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "backlog" })
+        });
+      }
+
       router.refresh();
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Could not save vote.");
@@ -58,26 +67,45 @@ export function VotingPanel({ task, members, votes, currentUserId, mode }: Votin
   const completionPercentage = members.length
     ? Math.round((insight.votedMemberIds.length / members.length) * 100)
     : 0;
+  const revealVotes = task.votingClosed;
 
   return (
-    <Card className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-ink">Story Point Voting</h3>
-        <Badge>{insight.votedMemberIds.length}/{members.length} voted</Badge>
+    <Card className="space-y-6 overflow-hidden">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="section-kicker">Private estimation</p>
+          <h3 className="mt-3 text-2xl font-semibold text-ink">Story Point Voting</h3>
+        </div>
+        <Badge className="w-fit border-[#171d25] bg-[#171d25] text-white">
+          {insight.votedMemberIds.length}/{members.length} voted
+        </Badge>
       </div>
 
-      <div className="space-y-2">
+      <div className="rounded-[24px] border border-[#e2d6c3] bg-white/[0.65] p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Completion</p>
+            <p className="mt-2 text-2xl font-semibold text-ink">{completionPercentage}%</p>
+          </div>
+          <p className="text-sm leading-6 text-slate-600">
+            {insight.missingMemberIds.length} member(s) still need to vote.
+          </p>
+        </div>
+        <div className="mt-4 space-y-3">
         <ProgressBar value={completionPercentage} />
-        <p className="text-xs text-slate-500">
-          {completionPercentage}% completion. {insight.missingMemberIds.length} member(s) still need to vote.
-        </p>
+        {!revealVotes ? (
+            <p className="text-sm font-medium leading-6 text-slate-600">
+            Vote values stay hidden until the full team has submitted.
+          </p>
+        ) : null}
+        </div>
       </div>
 
-      {error ? <p className="rounded-xl bg-rose-100 p-2 text-sm text-rose-700">{error}</p> : null}
+      {error ? <p className="rounded-2xl bg-rose-100 p-3 text-sm text-rose-700">{error}</p> : null}
 
       {mode === "demo" ? (
         <div className="max-w-xs">
-          <p className="mb-1 text-xs text-slate-500">Vote as</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Vote as</p>
           <Select value={voteAs} onChange={(event) => setVoteAs(event.target.value)}>
             {members.map((member) => (
               <option key={member.id} value={member.id}>
@@ -88,11 +116,12 @@ export function VotingPanel({ task, members, votes, currentUserId, mode }: Votin
         </div>
       ) : null}
 
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
         {VOTE_OPTIONS.map((option) => (
           <Button
             key={option}
-            variant={activeVote === option ? "primary" : "secondary"}
+            variant={activeVote === option ? "primary" : "ghost"}
+            className="h-14 text-lg"
             disabled={isSaving}
             onClick={() => castVote(option)}
           >
@@ -101,34 +130,51 @@ export function VotingPanel({ task, members, votes, currentUserId, mode }: Votin
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <p className="text-slate-500">Average score</p>
-          <p className="text-xl font-semibold text-ink">{insight.average ?? "Pending"}</p>
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-[24px] border border-[#e2d6c3] bg-white/[0.65] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Average score</p>
+          <p className="mt-3 text-2xl font-semibold text-ink">
+            {revealVotes ? insight.average ?? "Pending" : "Hidden until reveal"}
+          </p>
         </div>
-        <div>
-          <p className="text-slate-500">Disagreement range</p>
-          <p className="text-xl font-semibold text-ink">{insight.disagreement}</p>
+        <div className="rounded-[24px] border border-[#e2d6c3] bg-white/[0.65] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Disagreement range</p>
+          <p className="mt-3 text-2xl font-semibold text-ink">{revealVotes ? insight.disagreement : "Hidden"}</p>
         </div>
       </div>
 
-      {insight.isStrongDisagreement ? (
-        <p className="rounded-xl bg-amber-100 p-2 text-sm text-amber-800">
+      {revealVotes && insight.isStrongDisagreement ? (
+        <p className="rounded-[24px] bg-amber-100 p-4 text-sm leading-7 text-amber-800">
           Strong disagreement detected. Consider a short clarification discussion before assignment.
         </p>
-      ) : (
-        <p className="rounded-xl bg-emerald-100 p-2 text-sm text-emerald-800">
+      ) : revealVotes ? (
+        <p className="rounded-[24px] bg-emerald-100 p-4 text-sm leading-7 text-emerald-800">
           Voting is fairly aligned. The average can be used as the official effort estimate.
+        </p>
+      ) : (
+        <p className="rounded-[24px] bg-sky-100 p-4 text-sm leading-7 text-sky-800">
+          Voting stays private until everyone has voted, so the group is not influenced early.
         </p>
       )}
 
-      <div className="space-y-2 text-sm">
+      <div className="space-y-3 text-sm">
         {members.map((member) => {
           const memberVote = votes.find((vote) => vote.memberId === member.id);
           return (
-            <div key={member.id} className="flex items-center justify-between rounded-xl border border-slate-200 p-2">
-              <span>{member.name}</span>
-              <span className="font-semibold text-slate-700">{memberVote ? memberVote.value : "No vote yet"}</span>
+            <div
+              key={member.id}
+              className="flex items-center justify-between rounded-[22px] border border-[#e2d6c3] bg-white/60 px-4 py-3"
+            >
+              <span className="font-medium text-slate-700">{member.name}</span>
+              <span className="font-semibold text-slate-700">
+                {revealVotes
+                  ? memberVote?.value ?? "No vote"
+                  : memberVote
+                    ? member.id === activeVoterId
+                      ? `You picked ${memberVote.value}`
+                      : "Submitted"
+                    : "Waiting"}
+              </span>
             </div>
           );
         })}

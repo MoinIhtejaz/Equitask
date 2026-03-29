@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       teamWarning,
       needsEmailVerification: !session,
       hasTeam,
-      redirectTo: hasTeam ? "/dashboard" : "/teams"
+      redirectTo: "/dashboard"
     });
 
     if (session) {

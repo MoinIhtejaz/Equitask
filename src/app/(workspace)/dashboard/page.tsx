@@ -1,4 +1,5 @@
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { FinalizeTeamPanel } from "@/components/dashboard/FinalizeTeamPanel";
 import { MemberSummaryCards } from "@/components/dashboard/MemberSummaryCards";
 import { ProgressChart } from "@/components/dashboard/ProgressChart";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -8,11 +9,53 @@ import { SummaryCard } from "@/components/shared/SummaryCard";
 import { requireWorkspaceSession } from "@/lib/auth/guards";
 import { buildAnalyticsSnapshot } from "@/services/analyticsService";
 import { buildMemberSummaries } from "@/services/memberService";
+import { listTeams } from "@/services/teamService";
 import { getTaskCompletionPercentage } from "@/services/taskService";
 import { getWorkspaceSnapshot } from "@/services/workspaceService";
 
 export default async function DashboardPage() {
   const session = requireWorkspaceSession();
+
+  if (!session.teamId) {
+    const teams = session.mode === "supabase" ? await listTeams(session) : [];
+
+    return (
+      <div className="space-y-6">
+        <section className="grid gap-4 xl:grid-cols-[1.45fr,0.85fr]">
+          <div className="lux-surface relative overflow-hidden rounded-[32px] px-6 py-7 sm:px-8">
+            <div className="absolute inset-y-0 right-0 w-60 bg-[radial-gradient(circle_at_center,rgba(195,154,95,0.18),transparent_70%)]" />
+            <p className="section-kicker">Dashboard</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-ink">Welcome to Equitask</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+              Your account is ready, but your team is not finalized yet. Once you connect to a team,
+              this space becomes the shared command center for analytics, voting, notifications, and scrum work.
+            </p>
+          </div>
+
+          <div className="lux-surface rounded-[32px] px-6 py-7">
+            <p className="section-kicker">Next move</p>
+            <h2 className="mt-3 text-2xl font-semibold text-ink">Attach yourself to a team</h2>
+            <p className="mt-3 text-sm leading-7 text-slate-600">
+              Team analytics are calculated at the team level, not per user. Once you create or join a team below,
+              the full workspace activates automatically.
+            </p>
+          </div>
+        </section>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <SummaryCard label="Team Status" value="Pending" caption="No team attached yet" />
+          <SummaryCard label="Analytics Scope" value="Team" caption="Not individual-only" />
+          <SummaryCard label="Voting Flow" value="Ready" caption="Hidden until all votes finish" />
+          <SummaryCard label="Next Step" value="Finalize" caption="Create or join a team below" />
+        </div>
+
+        <div className="pt-2">
+          <FinalizeTeamPanel teams={teams} />
+        </div>
+      </div>
+    );
+  }
+
   const snapshot = await getWorkspaceSnapshot(session);
 
   const analytics = buildAnalyticsSnapshot(
@@ -28,11 +71,29 @@ export default async function DashboardPage() {
   const completionRate = getTaskCompletionPercentage(snapshot.data.tasks);
 
   return (
-    <div className="space-y-4">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-        <p className="text-xs uppercase tracking-wide text-slate-500">Active Team</p>
-        <h1 className="text-2xl font-bold text-ink">{snapshot.data.team.name}</h1>
-        <p className="text-slate-600">Project: {snapshot.data.team.projectName}</p>
+    <div className="space-y-5">
+      <section className="grid gap-4 xl:grid-cols-[1.4fr,0.9fr]">
+        <div className="lux-surface relative overflow-hidden rounded-[32px] px-6 py-7 sm:px-8">
+          <div className="absolute inset-y-0 right-0 w-64 bg-[radial-gradient(circle_at_center,rgba(195,154,95,0.18),transparent_72%)]" />
+          <p className="section-kicker">Active Team</p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-ink">{snapshot.data.team.name}</h1>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
+            Project: {snapshot.data.team.projectName}. Monitor delivery, spot imbalance early, and keep the team
+            aligned from task intake through board execution.
+          </p>
+        </div>
+
+        <div className="lux-surface rounded-[32px] px-6 py-7">
+          <p className="section-kicker">Workspace Readiness</p>
+          <h2 className="mt-3 text-2xl font-semibold text-ink">
+            {snapshot.pendingVotesCount > 0 ? "Votes still in flight" : "Board ready for execution"}
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">
+            {snapshot.pendingVotesCount > 0
+              ? `${snapshot.pendingVotesCount} task${snapshot.pendingVotesCount === 1 ? "" : "s"} still need team voting before assignment can fully stabilize.`
+              : "All currently visible board work has cleared voting and is ready to move through the scrum workflow."}
+          </p>
+        </div>
       </section>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">

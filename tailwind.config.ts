@@ -5,14 +5,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#13212f",
-        storm: "#1f3548",
-        moss: "#2f6b4f",
-        ember: "#bf4e30",
-        cloud: "#f5f7fb"
+        ink: "#11141a",
+        storm: "#171d25",
+        moss: "#c39a5f",
+        ember: "#b45f3a",
+        cloud: "#f6f0e5",
+        dune: "#ddc08d",
+        duneDeep: "#9d7543",
+        veil: "#fffaf1"
       },
       boxShadow: {
-        card: "0 20px 45px -28px rgba(20, 31, 44, 0.45)"
+        card: "0 28px 70px -34px rgba(17, 20, 26, 0.28)",
+        luxe: "0 40px 120px -42px rgba(17, 20, 26, 0.34)"
       }
     }
   },
