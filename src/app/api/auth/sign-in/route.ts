@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       success: true,
       mode: "supabase",
       hasTeam,
-      redirectTo: hasTeam ? "/dashboard" : "/teams"
+      redirectTo: "/dashboard"
     });
     setSession(response, hydratedSession);
     return response;

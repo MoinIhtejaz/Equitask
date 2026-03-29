@@ -9,8 +9,14 @@ export function requireWorkspaceSession(): SessionUser {
     redirect("/sign-in");
   }
 
+  return session;
+}
+
+export function requireTeamSession(): SessionUser {
+  const session = requireWorkspaceSession();
+
   if (session.mode === "supabase" && !session.teamId) {
-    redirect("/teams");
+    redirect("/dashboard");
   }
 
   return session;

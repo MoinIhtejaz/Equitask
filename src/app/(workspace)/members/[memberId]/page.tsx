@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import { AvailabilityGrid } from "@/components/members/AvailabilityGrid";
 import { Avatar } from "@/components/shared/Avatar";
 import { Card } from "@/components/ui/Card";
-import { requireWorkspaceSession } from "@/lib/auth/guards";
+import { requireTeamSession } from "@/lib/auth/guards";
 import { buildMemberSummaries } from "@/services/memberService";
 import { getWorkspaceSnapshot } from "@/services/workspaceService";
 
 export default async function MemberProfilePage({ params }: { params: { memberId: string } }) {
-  const session = requireWorkspaceSession();
+  const session = requireTeamSession();
   const snapshot = await getWorkspaceSnapshot(session);
 
   const member = snapshot.data.members.find((candidate) => candidate.id === params.memberId);
