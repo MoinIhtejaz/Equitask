@@ -255,13 +255,14 @@ async function getWorkspaceData(session: SessionUser): Promise<WorkspaceData> {
   const teamId = await getActiveTeamId(session);
   const client = createSupabaseServerClient(session.accessToken);
   const adminClient = createSupabaseAdminClient();
+  const membershipReadClient = adminClient ?? client;
 
   const teamResult = await client.from("teams").select("*").eq("id", teamId).single<TeamRow>();
   if (teamResult.error || !teamResult.data) {
     throw new Error(teamResult.error?.message || "Team not found.");
   }
 
-  const membersResult = await client
+  const membersResult = await membershipReadClient
     .from("team_members")
     .select("profile_id, profiles(*)")
     .eq("team_id", teamId)
@@ -391,8 +392,10 @@ async function validateAssigneeBelongsToTeam(
   assigneeId: string
 ): Promise<void> {
   const client = createSupabaseServerClient(session.accessToken);
+  const adminClient = createSupabaseAdminClient();
+  const membershipReadClient = adminClient ?? client;
 
-  const assigneeResult = await client
+  const assigneeResult = await membershipReadClient
     .from("team_members")
     .select("profile_id")
     .eq("team_id", teamId)
@@ -492,6 +495,8 @@ export const supabaseProvider: DataProvider = {
   async submitVote(session, input) {
     const task = await ensureTaskBelongsToTeam(session, input.taskId);
     const client = createSupabaseServerClient(session.accessToken);
+    const adminClient = createSupabaseAdminClient();
+    const membershipReadClient = adminClient ?? client;
 
     if (!task.voting_required) {
       throw new Error("Voting is not required for this task.");
@@ -521,7 +526,7 @@ export const supabaseProvider: DataProvider = {
       throw new Error(`Could not load votes: ${votesResult.error.message}`);
     }
 
-    const membersResult = await client
+    const membersResult = await membershipReadClient
       .from("team_members")
       .select("profile_id")
       .eq("team_id", task.team_id);
