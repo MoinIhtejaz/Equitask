@@ -242,6 +242,9 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
 
                   {columnTasks.map((task) => {
                     const assignee = task.assigneeId ? memberMap.get(task.assigneeId) : null;
+                    const creator = memberMap.get(task.createdById) ?? null;
+                    const creatorName = creator?.name ?? task.createdByName ?? "Unknown member";
+                    const assigneeName = assignee?.name ?? task.assigneeName ?? "Unassigned";
                     const votingInsight = getVotingInsight(
                       task,
                       members.map((member) => member.id),
@@ -332,23 +335,42 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
                           </p>
                         </div>
 
-                        <div
-                          className="flex items-center justify-between gap-3 border-t border-[#ede1cf] pt-4"
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          <div className="flex min-w-0 items-center gap-2">
-                            {assignee ? <Avatar member={assignee} size="sm" /> : null}
-                            <div className="min-w-0">
-                              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                                Assignee
-                              </p>
-                              <p className="truncate text-sm font-semibold text-ink">
-                                {assignee?.name ?? "Unassigned"}
-                              </p>
+                        <div className="space-y-3 border-t border-[#ede1cf] pt-4">
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-[#e9dcc8] bg-[#fffaf2] px-3 py-2">
+                              {creator ? <Avatar member={creator} size="sm" /> : null}
+                              <div className="min-w-0">
+                                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                  Created by
+                                </p>
+                                <p className="truncate text-sm font-semibold text-ink">
+                                  {creatorName}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-[#e9dcc8] bg-[#fffaf2] px-3 py-2">
+                              {assignee ? <Avatar member={assignee} size="sm" /> : null}
+                              <div className="min-w-0">
+                                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                  Assigned to
+                                </p>
+                                <p className="truncate text-sm font-semibold text-ink">
+                                  {assigneeName}
+                                </p>
+                              </div>
                             </div>
                           </div>
 
-                          <div className="w-36">
+                          <div
+                            className="flex items-center justify-between gap-3"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                              Update assignee
+                            </p>
+
+                            <div className="w-36">
                             <Select
                               value={task.assigneeId ?? ""}
                               disabled={busyTaskId === task.id}
@@ -361,6 +383,7 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
                                 </option>
                               ))}
                             </Select>
+                            </div>
                           </div>
                         </div>
                       </Card>
@@ -378,6 +401,8 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
           task={selectedTask}
           members={members}
           votes={votes.filter((vote) => vote.taskId === selectedTask.id)}
+          isUpdatingStatus={busyTaskId === selectedTask.id}
+          onStatusChange={(status) => void updateStatus(selectedTask.id, status, true)}
           onClose={() => setSelectedTaskId(null)}
         />
       ) : null}

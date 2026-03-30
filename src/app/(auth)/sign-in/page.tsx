@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -18,18 +18,45 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
+  const [busyMode, setBusyMode] = useState<"demo" | "signin" | null>(null);
+  const [loadingStep, setLoadingStep] = useState(0);
+
+  const transitionSteps = useMemo(
+    () =>
+      busyMode === "demo"
+        ? ["Opening demo workspace", "Loading seeded team data", "Preparing dashboard"]
+        : ["Verifying your account", "Loading team workspace", "Opening dashboard"],
+    [busyMode]
+  );
+
+  useEffect(() => {
+    router.prefetch("/dashboard");
+  }, [router]);
+
+  useEffect(() => {
+    if (!isBusy) {
+      setLoadingStep(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setLoadingStep((current) => (current + 1) % transitionSteps.length);
+    }, 900);
+
+    return () => window.clearInterval(interval);
+  }, [isBusy, transitionSteps.length]);
 
   async function demoLogin() {
     try {
       setIsBusy(true);
+      setBusyMode("demo");
       setError(null);
       await fetch("/api/auth/demo", { method: "POST" });
-      router.push("/dashboard");
-      router.refresh();
+      window.location.assign("/dashboard");
     } catch {
       setError("Demo login failed. Please try again.");
-    } finally {
       setIsBusy(false);
+      setBusyMode(null);
     }
   }
 
@@ -38,6 +65,7 @@ export default function SignInPage() {
 
     try {
       setIsBusy(true);
+      setBusyMode("signin");
       setError(null);
 
       const response = await fetch("/api/auth/sign-in", {
@@ -52,17 +80,40 @@ export default function SignInPage() {
       }
 
       const redirectTo = payload.redirectTo || "/dashboard";
-      router.push(redirectTo);
-      router.refresh();
+      window.location.assign(redirectTo);
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Sign-in failed.");
-    } finally {
       setIsBusy(false);
+      setBusyMode(null);
     }
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-10">
+      {isBusy ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#090b0f]/80 px-6 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(195,154,95,0.16),transparent_32%),linear-gradient(180deg,#151a22_0%,#0f1319_100%)] p-8 text-white shadow-[0_30px_90px_-40px_rgba(0,0,0,0.95)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[#d6ba87]">Equitask</p>
+            <h2 className="mt-4 text-3xl font-semibold text-[#fff7e8]">
+              {busyMode === "demo" ? "Launching demo mode" : "Signing you in"}
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-white/70">{transitionSteps[loadingStep]}</p>
+
+            <div className="mt-6 h-2.5 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,#c39a5f_0%,#f0d7a2_50%,#c39a5f_100%)] transition-all duration-500"
+                style={{ width: `${((loadingStep + 1) / transitionSteps.length) * 100}%` }}
+              />
+            </div>
+
+            <div className="mt-6 flex items-center gap-3">
+              <span className="inline-flex h-10 w-10 animate-spin rounded-full border-2 border-[#d6ba87]/25 border-t-[#f0d7a2]" />
+              <p className="text-sm text-white/58">This usually only takes a moment.</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <Card className="w-full max-w-md space-y-5">
         <div>
           <h1 className="text-2xl font-bold text-ink">Sign in to Equitask</h1>

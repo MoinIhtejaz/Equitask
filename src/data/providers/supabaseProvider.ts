@@ -5,6 +5,7 @@ import {
   JoinTeamInput,
   VoteInput
 } from "@/data/providers/providerTypes";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CreateTaskInput, SessionUser, Task, TaskComment, TaskStatus, TaskVote, TeamMembership, WorkspaceData } from "@/types";
 
@@ -83,7 +84,7 @@ interface NotificationRow {
   created_at: string;
 }
 
-function mapTaskRow(row: TaskRow): Task {
+function mapTaskRow(row: TaskRow, profileMap?: Map<string, ProfileRow>): Task {
   return {
     id: row.id,
     teamId: row.team_id,
@@ -98,6 +99,8 @@ function mapTaskRow(row: TaskRow): Task {
     votingClosed: row.voting_closed,
     officialStoryPoints: row.official_story_points,
     createdById: row.created_by,
+    createdByName: profileMap?.get(row.created_by)?.name ?? null,
+    assigneeName: row.assignee_id ? profileMap?.get(row.assignee_id)?.name ?? null : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -194,6 +197,7 @@ async function getActiveTeamId(session: SessionUser): Promise<string> {
 function mapWorkspace(
   team: TeamRow,
   members: TeamMemberJoinRow[],
+  profileMap: Map<string, ProfileRow>,
   tasks: TaskRow[],
   votes: VoteRow[],
   comments: CommentRow[],
@@ -218,7 +222,7 @@ function mapWorkspace(
         reliabilityScore: profile.reliability_score,
         avatarColor: profile.avatar_color
       })),
-    tasks: tasks.map(mapTaskRow),
+    tasks: tasks.map((task) => mapTaskRow(task, profileMap)),
     votes: votes.map((vote) => ({
       id: vote.id,
       taskId: vote.task_id,
@@ -250,6 +254,7 @@ function mapWorkspace(
 async function getWorkspaceData(session: SessionUser): Promise<WorkspaceData> {
   const teamId = await getActiveTeamId(session);
   const client = createSupabaseServerClient(session.accessToken);
+  const adminClient = createSupabaseAdminClient();
 
   const teamResult = await client.from("teams").select("*").eq("id", teamId).single<TeamRow>();
   if (teamResult.error || !teamResult.data) {
@@ -275,6 +280,41 @@ async function getWorkspaceData(session: SessionUser): Promise<WorkspaceData> {
 
   if (tasksResult.error) {
     throw new Error(`Failed to load tasks: ${tasksResult.error.message}`);
+  }
+
+  const memberProfiles = (membersResult.data || [])
+    .map((member) => member.profiles)
+    .filter((profile): profile is ProfileRow => Boolean(profile));
+
+  const referencedProfileIds = Array.from(
+    new Set(
+      [
+        ...memberProfiles.map((profile) => profile.id),
+        ...(tasksResult.data || []).flatMap((task) => [task.created_by, task.assignee_id].filter(Boolean))
+      ].filter((value): value is string => Boolean(value))
+    )
+  );
+
+  const fallbackProfilesResult = referencedProfileIds.length
+    ? await (adminClient ?? client)
+        .from("profiles")
+        .select("*")
+        .in("id", referencedProfileIds)
+        .returns<ProfileRow[]>()
+    : { data: [] as ProfileRow[], error: null };
+
+  if (fallbackProfilesResult.error) {
+    throw new Error(`Failed to resolve task people: ${fallbackProfilesResult.error.message}`);
+  }
+
+  const profileMap = new Map<string, ProfileRow>();
+
+  for (const profile of memberProfiles) {
+    profileMap.set(profile.id, profile);
+  }
+
+  for (const profile of fallbackProfilesResult.data || []) {
+    profileMap.set(profile.id, profile);
   }
 
   const taskIds = (tasksResult.data || []).map((task) => task.id);
@@ -320,6 +360,7 @@ async function getWorkspaceData(session: SessionUser): Promise<WorkspaceData> {
   return mapWorkspace(
     teamResult.data,
     membersResult.data || [],
+    profileMap,
     tasksResult.data || [],
     votesResult.data || [],
     commentsResult.data || [],
@@ -601,15 +642,53 @@ export const supabaseProvider: DataProvider = {
   async joinTeam(session, input: JoinTeamInput) {
     await ensureProfileExists(session);
     const client = createSupabaseServerClient(session.accessToken);
-    const teamCode = input.teamCode.trim();
+    const adminClient = createSupabaseAdminClient();
+    const teamCode = input.teamCode?.trim() ?? "";
+    const teamName = input.teamName?.trim() ?? "";
 
-    if (!teamCode) {
-      throw new Error("Team code is required.");
+    let targetTeam: TeamRow | null = null;
+
+    if (teamCode) {
+      const joinedTeamResult = await client
+        .from("teams")
+        .select("id, name, project_name")
+        .eq("id", teamCode)
+        .single<TeamRow>();
+
+      if (joinedTeamResult.error || !joinedTeamResult.data) {
+        throw new Error(joinedTeamResult.error?.message || "Team code not found.");
+      }
+
+      targetTeam = joinedTeamResult.data;
+    } else if (teamName) {
+      const lookupClient = adminClient ?? client;
+      const matchedTeamResult = await lookupClient
+        .from("teams")
+        .select("id, name, project_name")
+        .ilike("name", teamName)
+        .limit(1)
+        .maybeSingle<TeamRow>();
+
+      if (matchedTeamResult.error) {
+        throw new Error(matchedTeamResult.error.message || "Could not find team.");
+      }
+
+      if (!matchedTeamResult.data) {
+        throw new Error(
+          `Team "${teamName}" was not found. Enter the exact team name${
+            adminClient ? "" : ", or configure SUPABASE_SERVICE_ROLE_KEY for team-name joins"
+          }.`
+        );
+      }
+
+      targetTeam = matchedTeamResult.data;
+    } else {
+      throw new Error("Team name is required.");
     }
 
     const membershipInsertResult = await client.from("team_members").upsert(
       {
-        team_id: teamCode,
+        team_id: targetTeam.id,
         profile_id: session.id,
         member_role: "member"
       },
@@ -621,25 +700,15 @@ export const supabaseProvider: DataProvider = {
 
     if (membershipInsertResult.error) {
       if (membershipInsertResult.error.code === "23503") {
-        throw new Error("Team code not found. Ask your teammate for the exact code.");
+        throw new Error("Team not found. Enter the exact team name.");
       }
       throw new Error(`Could not join team: ${membershipInsertResult.error.message}`);
     }
 
-    const joinedTeamResult = await client
-      .from("teams")
-      .select("id, name, project_name")
-      .eq("id", teamCode)
-      .single<TeamRow>();
-
-    if (joinedTeamResult.error || !joinedTeamResult.data) {
-      throw new Error(joinedTeamResult.error?.message || "Team code not found.");
-    }
-
     return {
-      teamId: joinedTeamResult.data.id,
-      teamName: joinedTeamResult.data.name,
-      projectName: joinedTeamResult.data.project_name,
+      teamId: targetTeam.id,
+      teamName: targetTeam.name,
+      projectName: targetTeam.project_name,
       memberRole: "member",
       joinedAt: new Date().toISOString()
     };

@@ -1,10 +1,32 @@
 import { Card } from "@/components/ui/Card";
+import { FinalizeTeamPanel } from "@/components/dashboard/FinalizeTeamPanel";
 import { VotingPanel } from "@/components/voting/VotingPanel";
-import { requireTeamSession } from "@/lib/auth/guards";
+import { requireWorkspaceSession } from "@/lib/auth/guards";
+import { listTeams } from "@/services/teamService";
 import { getWorkspaceSnapshot } from "@/services/workspaceService";
 
 export default async function VotingPage() {
-  const session = requireTeamSession();
+  const session = requireWorkspaceSession();
+
+  if (!session.teamId) {
+    const teams = session.mode === "supabase" ? await listTeams(session) : [];
+
+    return (
+      <div className="space-y-5">
+        <Card className="relative overflow-hidden">
+          <div className="absolute inset-y-0 right-0 w-56 bg-[radial-gradient(circle_at_center,rgba(195,154,95,0.16),transparent_68%)]" />
+          <p className="section-kicker">Voting queue</p>
+          <h1 className="mt-3 text-3xl font-semibold text-ink">Story Point Voting Center</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
+            Attach yourself to a team first, then the private voting queue will load for the shared workspace.
+          </p>
+        </Card>
+
+        <FinalizeTeamPanel teams={teams} />
+      </div>
+    );
+  }
+
   const snapshot = await getWorkspaceSnapshot(session);
 
   const votingTasks = snapshot.data.tasks

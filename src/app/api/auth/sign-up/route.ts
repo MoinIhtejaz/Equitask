@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 
 import { setSession } from "@/lib/auth/session";
 import { signUpWithSupabase } from "@/services/authService";
-import { createTeam, hydrateSessionWithActiveTeam, joinTeam } from "@/services/teamService";
-
-type TeamAction = "create" | "join" | "later";
+import { hydrateSessionWithActiveTeam, joinTeam } from "@/services/teamService";
 
 export async function POST(request: Request) {
   try {
@@ -12,10 +10,7 @@ export async function POST(request: Request) {
     const name = String(body.name || "").trim();
     const email = String(body.email || "").trim();
     const password = String(body.password || "").trim();
-    const teamAction = String(body.teamAction || "create").trim() as TeamAction;
     const teamName = String(body.teamName || "").trim();
-    const projectName = String(body.projectName || "").trim();
-    const teamCode = String(body.teamCode || "").trim();
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -24,23 +19,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!["create", "join", "later"].includes(teamAction)) {
+    if (!teamName) {
       return NextResponse.json(
-        { success: false, error: "Invalid team action." },
-        { status: 400 }
-      );
-    }
-
-    if (teamAction === "create" && (!teamName || !projectName)) {
-      return NextResponse.json(
-        { success: false, error: "Team name and project name are required to create a team." },
-        { status: 400 }
-      );
-    }
-
-    if (teamAction === "join" && !teamCode) {
-      return NextResponse.json(
-        { success: false, error: "Team code is required to join an existing team." },
+        { success: false, error: "Team name is required." },
         { status: 400 }
       );
     }
@@ -53,24 +34,14 @@ export async function POST(request: Request) {
 
     if (session) {
       try {
-        if (teamAction === "create") {
-          const created = await createTeam(session, {
-            name: teamName,
-            projectName
-          });
-          session = await hydrateSessionWithActiveTeam(session, created.teamId);
-        } else if (teamAction === "join") {
-          const joined = await joinTeam(session, { teamCode });
-          session = await hydrateSessionWithActiveTeam(session, joined.teamId);
-        } else {
-          session = await hydrateSessionWithActiveTeam(session);
-        }
+        const joined = await joinTeam(session, { teamName });
+        session = await hydrateSessionWithActiveTeam(session, joined.teamId);
       } catch (teamError) {
         session = await hydrateSessionWithActiveTeam(session);
         teamWarning =
           teamError instanceof Error
             ? teamError.message
-            : "Account created, but team setup was not completed.";
+            : "Account created, but we could not attach you to the team workspace.";
       }
     }
 

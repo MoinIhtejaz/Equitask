@@ -7,7 +7,6 @@ import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -18,10 +17,7 @@ export default function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [teamAction, setTeamAction] = useState<"create" | "join" | "later">("create");
-  const [teamName, setTeamName] = useState("Team Equitask Alpha");
-  const [projectName, setProjectName] = useState("Equitask Student Collaboration Platform");
-  const [teamCode, setTeamCode] = useState("");
+  const [teamName, setTeamName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
@@ -43,10 +39,7 @@ export default function SignUpPage() {
           name,
           email,
           password,
-          teamAction,
-          teamName,
-          projectName,
-          teamCode
+          teamName
         })
       });
 
@@ -61,7 +54,7 @@ export default function SignUpPage() {
         setWarning(payload.teamWarning);
       }
 
-      if (!payload.needsEmailVerification) {
+      if (!payload.needsEmailVerification && payload.hasTeam) {
         router.push(payload.redirectTo || "/dashboard");
         router.refresh();
       }
@@ -77,7 +70,9 @@ export default function SignUpPage() {
       <Card className="w-full max-w-md space-y-5">
         <div>
           <h1 className="text-2xl font-bold text-ink">Create your Equitask account</h1>
-          <p className="mt-1 text-sm text-slate-500">Enable persistent teamwork with Supabase auth.</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Join your shared team workspace by entering the exact team name.
+          </p>
         </div>
 
         {!SUPABASE_CONFIGURED ? (
@@ -133,64 +128,19 @@ export default function SignUpPage() {
 
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Team setup
+              Team name
             </label>
-            <Select
-              value={teamAction}
-              onChange={(event) => setTeamAction(event.target.value as "create" | "join" | "later")}
-            >
-              <option value="create">Create a new team</option>
-              <option value="join">Join with team code</option>
-              <option value="later">Decide after sign-up</option>
-            </Select>
+            <Input
+              value={teamName}
+              onChange={(event) => setTeamName(event.target.value)}
+              type="text"
+              placeholder="team 05"
+              required
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Enter the team name exactly as it was created so you are added to the same workspace.
+            </p>
           </div>
-
-          {teamAction === "create" ? (
-            <div className="grid gap-3">
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Team name
-                </label>
-                <Input
-                  value={teamName}
-                  onChange={(event) => setTeamName(event.target.value)}
-                  type="text"
-                  placeholder="Team Equitask Alpha"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Project name
-                </label>
-                <Input
-                  value={projectName}
-                  onChange={(event) => setProjectName(event.target.value)}
-                  type="text"
-                  placeholder="Equitask Student Collaboration Platform"
-                  required
-                />
-              </div>
-            </div>
-          ) : null}
-
-          {teamAction === "join" ? (
-            <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Team code
-              </label>
-              <Input
-                value={teamCode}
-                onChange={(event) => setTeamCode(event.target.value)}
-                type="text"
-                placeholder="team-xxxxxx"
-                required
-              />
-              <p className="mt-1 text-xs text-slate-500">
-                Ask your teammate to share the code from their Team Hub.
-              </p>
-            </div>
-          ) : null}
 
           <Button className="w-full" disabled={isBusy || !SUPABASE_CONFIGURED}>
             {isBusy ? "Creating account..." : "Create Account"}
