@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Avatar } from "@/components/shared/Avatar";
@@ -36,10 +36,6 @@ function getWorkloadFit(task: Task, memberPoints: Record<string, number>, averag
 }
 
 function getBoardStatus(task: Task): TaskStatus {
-  if (task.votingRequired && task.votingClosed && !task.assigneeId) {
-    return "backlog";
-  }
-
   return task.status;
 }
 
@@ -51,13 +47,22 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dropTargetStatus, setDropTargetStatus] = useState<TaskStatus | null>(null);
 
-  const visibleTasks = tasks.filter((task) => !task.votingRequired || task.votingClosed);
-  const selectedTask = visibleTasks.find((task) => task.id === selectedTaskId) ?? null;
+  const visibleTasks = useMemo(
+    () => tasks.filter((task) => !task.votingRequired || task.votingClosed),
+    [tasks]
+  );
+  const [boardTasks, setBoardTasks] = useState<Task[]>(visibleTasks);
+
+  useEffect(() => {
+    setBoardTasks(visibleTasks);
+  }, [visibleTasks]);
+
+  const selectedTask = boardTasks.find((task) => task.id === selectedTaskId) ?? null;
 
   const memberMap = useMemo(() => new Map(members.map((member) => [member.id, member])), [members]);
 
   const memberPoints = useMemo(() => {
-    return visibleTasks.reduce<Record<string, number>>((accumulator, task) => {
+    return boardTasks.reduce<Record<string, number>>((accumulator, task) => {
       if (!task.assigneeId) {
         return accumulator;
       }
@@ -66,17 +71,26 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
         (accumulator[task.assigneeId] ?? 0) + (task.officialStoryPoints ?? 0);
       return accumulator;
     }, {});
-  }, [visibleTasks]);
+  }, [boardTasks]);
 
   const averagePoints =
     members.length > 0
       ? members.reduce((sum, member) => sum + (memberPoints[member.id] ?? 0), 0) / members.length
       : 0;
 
-  async function updateStatus(taskId: string, status: TaskStatus) {
+  async function updateStatus(taskId: string, status: TaskStatus, optimistic = false) {
+    const previousTasks = boardTasks;
+
     try {
       setBusyTaskId(taskId);
       setError(null);
+
+      if (optimistic) {
+        setBoardTasks((currentTasks) =>
+          currentTasks.map((task) => (task.id === taskId ? { ...task, status } : task))
+        );
+      }
+
       const response = await fetch(`/api/tasks/${taskId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -88,6 +102,9 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
       }
       router.refresh();
     } catch (caughtError) {
+      if (optimistic) {
+        setBoardTasks(previousTasks);
+      }
       setError(caughtError instanceof Error ? caughtError.message : "Could not update task status.");
     } finally {
       setBusyTaskId(null);
@@ -95,9 +112,16 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
   }
 
   async function updateAssignee(taskId: string, assigneeId: string) {
+    const previousTasks = boardTasks;
+
     try {
       setBusyTaskId(taskId);
       setError(null);
+
+      setBoardTasks((currentTasks) =>
+        currentTasks.map((task) => (task.id === taskId ? { ...task, assigneeId: assigneeId || null } : task))
+      );
+
       const response = await fetch(`/api/tasks/${taskId}/assign`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -109,6 +133,7 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
       }
       router.refresh();
     } catch (caughtError) {
+      setBoardTasks(previousTasks);
       setError(caughtError instanceof Error ? caughtError.message : "Could not update task assignee.");
     } finally {
       setBusyTaskId(null);
@@ -120,7 +145,7 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
       return;
     }
 
-    const draggedTask = visibleTasks.find((task) => task.id === draggedTaskId);
+    const draggedTask = boardTasks.find((task) => task.id === draggedTaskId);
     setDropTargetStatus(null);
 
     if (!draggedTask) {
@@ -133,7 +158,7 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
       return;
     }
 
-    await updateStatus(draggedTaskId, targetStatus);
+    await updateStatus(draggedTaskId, targetStatus, true);
     setDraggedTaskId(null);
   }
 
@@ -144,7 +169,7 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
       <div className="overflow-x-auto pb-3">
         <div className="grid min-w-[1380px] gap-5 xl:grid-cols-5">
           {STATUS_ORDER.map((status) => {
-            const columnTasks = visibleTasks.filter((task) => getBoardStatus(task) === status);
+            const columnTasks = boardTasks.filter((task) => getBoardStatus(task) === status);
             const isDropActive = dropTargetStatus === status;
 
             return (
@@ -152,14 +177,19 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
                 key={status}
                 onDragOver={(event) => {
                   event.preventDefault();
+                  event.stopPropagation();
                   if (draggedTaskId) {
                     event.dataTransfer.dropEffect = "move";
                     setDropTargetStatus(status);
                   }
                 }}
-                onDrop={() => void dropTaskIntoColumn(status)}
-                onDragLeave={() => {
-                  if (dropTargetStatus === status) {
+                onDrop={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  void dropTaskIntoColumn(status);
+                }}
+                onDragLeave={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
                     setDropTargetStatus(null);
                   }
                 }}
