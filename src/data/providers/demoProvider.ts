@@ -109,6 +109,7 @@ export const demoProvider: DataProvider = {
       votingClosed: !input.votingRequired,
       officialStoryPoints: null,
       createdById: "member-moin",
+      createdByName: "Moin",
       createdAt: nowIso(),
       updatedAt: nowIso()
     };

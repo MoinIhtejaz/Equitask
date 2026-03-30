@@ -28,7 +28,8 @@ export interface CreateTeamInput {
 }
 
 export interface JoinTeamInput {
-  teamCode: string;
+  teamCode?: string;
+  teamName?: string;
 }
 
 export interface DataProvider {

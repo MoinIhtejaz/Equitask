@@ -9,12 +9,16 @@ export async function POST(request: Request) {
     const session = requireSession();
     const body = await request.json();
     const teamCode = String(body.teamCode || "").trim();
+    const teamName = String(body.teamName || "").trim();
 
-    if (!teamCode) {
-      return NextResponse.json({ success: false, error: "Team code is required." }, { status: 400 });
+    if (!teamCode && !teamName) {
+      return NextResponse.json(
+        { success: false, error: "Team name is required." },
+        { status: 400 }
+      );
     }
 
-    const joined = await joinTeam(session, { teamCode });
+    const joined = await joinTeam(session, teamName ? { teamName } : { teamCode });
     const updatedSession = await hydrateSessionWithActiveTeam(session, joined.teamId);
 
     const response = NextResponse.json({

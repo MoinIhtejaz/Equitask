@@ -69,6 +69,8 @@ export interface Task {
   votingClosed: boolean;
   officialStoryPoints: number | null;
   createdById: string;
+  createdByName?: string | null;
+  assigneeName?: string | null;
   createdAt: string;
   updatedAt: string;
 }

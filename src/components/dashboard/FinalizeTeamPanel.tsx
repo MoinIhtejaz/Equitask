@@ -10,38 +10,9 @@ import { TeamMembership } from "@/types";
 
 export function FinalizeTeamPanel({ teams }: { teams: TeamMembership[] }) {
   const router = useRouter();
-  const [createName, setCreateName] = useState("");
-  const [createProjectName, setCreateProjectName] = useState("");
-  const [joinCode, setJoinCode] = useState("");
+  const [joinTeamName, setJoinTeamName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
-
-  async function createTeam() {
-    try {
-      setIsBusy(true);
-      setError(null);
-
-      const response = await fetch("/api/teams", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: createName,
-          projectName: createProjectName
-        })
-      });
-
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error || "Could not create team.");
-      }
-
-      router.refresh();
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "Could not create team.");
-    } finally {
-      setIsBusy(false);
-    }
-  }
 
   async function joinTeam() {
     try {
@@ -51,7 +22,7 @@ export function FinalizeTeamPanel({ teams }: { teams: TeamMembership[] }) {
       const response = await fetch("/api/teams/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamCode: joinCode })
+        body: JSON.stringify({ teamName: joinTeamName })
       });
 
       const payload = await response.json();
@@ -98,8 +69,8 @@ export function FinalizeTeamPanel({ teams }: { teams: TeamMembership[] }) {
         <p className="section-kicker">Finalize Team</p>
         <h2 className="mt-3 text-3xl font-semibold text-ink">Finish your team setup from the dashboard</h2>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          You can create a team, join an existing team with a code, or activate a team you already belong to.
-          Once a team is selected, analytics and scrum data load for the whole group.
+          Join the existing team workspace by name, or activate a team you already belong to. Once a team is
+          selected, analytics and scrum data load for the whole group.
         </p>
       </div>
 
@@ -113,7 +84,6 @@ export function FinalizeTeamPanel({ teams }: { teams: TeamMembership[] }) {
               <div key={team.teamId} className="rounded-[24px] border border-[#e1d4be] bg-white/70 p-5">
                 <p className="text-lg font-semibold text-slate-800">{team.teamName}</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{team.projectName}</p>
-                <p className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-500">Team code: {team.teamId}</p>
                 <Button
                   className="mt-4"
                   variant="secondary"
@@ -128,45 +98,20 @@ export function FinalizeTeamPanel({ teams }: { teams: TeamMembership[] }) {
         </div>
       ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-[26px] border border-[#e1d4be] bg-white/[0.72] p-5">
-          <h3 className="text-xl font-semibold text-ink">Create a new team</h3>
-          <div className="mt-4 space-y-3">
-            <Input
-              value={createName}
-              onChange={(event) => setCreateName(event.target.value)}
-              placeholder="Team name"
-            />
-            <Input
-              value={createProjectName}
-              onChange={(event) => setCreateProjectName(event.target.value)}
-              placeholder="Project name"
-            />
-            <Button
-              className="w-full"
-              disabled={isBusy || !createName.trim() || !createProjectName.trim()}
-              onClick={createTeam}
-            >
-              {isBusy ? "Saving..." : "Create Team"}
-            </Button>
-          </div>
-        </div>
-
-        <div className="rounded-[26px] border border-[#e1d4be] bg-white/[0.72] p-5">
-          <h3 className="text-xl font-semibold text-ink">Join with team code</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            Enter the team code your group lead shared so you join the same team analytics workspace.
-          </p>
-          <div className="mt-4 space-y-3">
-            <Input
-              value={joinCode}
-              onChange={(event) => setJoinCode(event.target.value)}
-              placeholder="team-xxxxxxxx"
-            />
-            <Button className="w-full" disabled={isBusy || !joinCode.trim()} onClick={joinTeam}>
-              {isBusy ? "Joining..." : "Join Team"}
-            </Button>
-          </div>
+      <div className="rounded-[26px] border border-[#e1d4be] bg-white/[0.72] p-5">
+        <h3 className="text-xl font-semibold text-ink">Join with team name</h3>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Enter the exact team name so you join the shared analytics and scrum workspace.
+        </p>
+        <div className="mt-4 space-y-3">
+          <Input
+            value={joinTeamName}
+            onChange={(event) => setJoinTeamName(event.target.value)}
+            placeholder="team 05"
+          />
+          <Button className="w-full" disabled={isBusy || !joinTeamName.trim()} onClick={joinTeam}>
+            {isBusy ? "Joining..." : "Join Team"}
+          </Button>
         </div>
       </div>
     </Card>
