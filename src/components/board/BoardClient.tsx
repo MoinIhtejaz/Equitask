@@ -175,6 +175,12 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
             return (
               <section
                 key={status}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  if (draggedTaskId) {
+                    setDropTargetStatus(status);
+                  }
+                }}
                 onDragOver={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
@@ -205,7 +211,22 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
                   <Badge className="border-[#1b222c] bg-[#1b222c] text-white">{columnTasks.length}</Badge>
                 </header>
 
-                <div className="space-y-3">
+                <div
+                  className="min-h-[10rem] space-y-3"
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (draggedTaskId) {
+                      event.dataTransfer.dropEffect = "move";
+                      setDropTargetStatus(status);
+                    }
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void dropTaskIntoColumn(status);
+                  }}
+                >
                   {columnTasks.length === 0 ? (
                     <div
                       className={cn(
@@ -239,6 +260,21 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
                         onDragEnd={() => {
                           setDraggedTaskId(null);
                           setDropTargetStatus(null);
+                        }}
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          if (draggedTaskId && draggedTaskId !== task.id) {
+                            event.dataTransfer.dropEffect = "move";
+                            setDropTargetStatus(status);
+                          }
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          if (draggedTaskId && draggedTaskId !== task.id) {
+                            void dropTaskIntoColumn(status);
+                          }
                         }}
                         className={cn(
                           "cursor-grab space-y-4 border border-[#dac6a3] bg-white p-4 shadow-[0_18px_42px_-32px_rgba(17,20,26,0.5)] transition duration-200 hover:-translate-y-1 hover:border-[#c39a5f] active:cursor-grabbing",
