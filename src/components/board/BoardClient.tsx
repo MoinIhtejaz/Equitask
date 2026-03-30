@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
 import { STATUS_LABELS, STATUS_ORDER } from "@/lib/constants";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { Task, TaskStatus, TaskVote, Member } from "@/types";
 import { getVotingInsight } from "@/services/voteService";
 
@@ -48,6 +48,8 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
   const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dropTargetStatus, setDropTargetStatus] = useState<TaskStatus | null>(null);
 
   const visibleTasks = tasks.filter((task) => !task.votingRequired || task.votingClosed);
   const selectedTask = visibleTasks.find((task) => task.id === selectedTaskId) ?? null;
@@ -113,134 +115,195 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
     }
   }
 
+  async function dropTaskIntoColumn(targetStatus: TaskStatus) {
+    if (!draggedTaskId) {
+      return;
+    }
+
+    const draggedTask = visibleTasks.find((task) => task.id === draggedTaskId);
+    setDropTargetStatus(null);
+
+    if (!draggedTask) {
+      setDraggedTaskId(null);
+      return;
+    }
+
+    if (getBoardStatus(draggedTask) === targetStatus) {
+      setDraggedTaskId(null);
+      return;
+    }
+
+    await updateStatus(draggedTaskId, targetStatus);
+    setDraggedTaskId(null);
+  }
+
   return (
     <div className="space-y-5">
       {error ? <p className="rounded-2xl bg-rose-100 p-3 text-sm text-rose-700">{error}</p> : null}
 
       <div className="overflow-x-auto pb-3">
         <div className="grid min-w-[1380px] gap-5 xl:grid-cols-5">
-        {STATUS_ORDER.map((status) => {
-          const columnTasks = visibleTasks.filter((task) => getBoardStatus(task) === status);
+          {STATUS_ORDER.map((status) => {
+            const columnTasks = visibleTasks.filter((task) => getBoardStatus(task) === status);
+            const isDropActive = dropTargetStatus === status;
 
-          return (
-            <section
-              key={status}
-              className="rounded-[28px] border border-[#e3d8c5] bg-white/[0.58] p-4 shadow-[0_24px_60px_-42px_rgba(17,20,26,0.28)] backdrop-blur"
-            >
-              <header className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <p className="section-kicker">Column</p>
-                  <h3 className="mt-2 text-xl font-semibold text-slate-700">{STATUS_LABELS[status]}</h3>
-                </div>
-                <Badge className="border-[#171d25] bg-[#171d25] text-white">{columnTasks.length}</Badge>
-              </header>
+            return (
+              <section
+                key={status}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  if (draggedTaskId) {
+                    event.dataTransfer.dropEffect = "move";
+                    setDropTargetStatus(status);
+                  }
+                }}
+                onDrop={() => void dropTaskIntoColumn(status)}
+                onDragLeave={() => {
+                  if (dropTargetStatus === status) {
+                    setDropTargetStatus(null);
+                  }
+                }}
+                className={cn(
+                  "rounded-[28px] border p-4 shadow-[0_24px_60px_-42px_rgba(17,20,26,0.28)] backdrop-blur transition-colors",
+                  isDropActive
+                    ? "border-[#c39a5f] bg-[#f7ecda]"
+                    : "border-[#d8c7aa] bg-[#f8f1e4]/95"
+                )}
+              >
+                <header className="mb-4 flex items-center justify-between gap-3 border-b border-[#dfcfb3] pb-3">
+                  <h3 className="text-lg font-semibold text-ink">{STATUS_LABELS[status]}</h3>
+                  <Badge className="border-[#1b222c] bg-[#1b222c] text-white">{columnTasks.length}</Badge>
+                </header>
 
-              <div className="space-y-4">
-                {columnTasks.length === 0 ? (
-                  <div className="rounded-[22px] border border-dashed border-[#d4c4a5] bg-white/[0.4] px-4 py-8 text-center text-sm text-slate-500">
-                    No tasks in {STATUS_LABELS[status].toLowerCase()} yet.
-                  </div>
-                ) : null}
-                {columnTasks.map((task) => {
-                  const assignee = task.assigneeId ? memberMap.get(task.assigneeId) : null;
-                  const votingInsight = getVotingInsight(
-                    task,
-                    members.map((member) => member.id),
-                    votes
-                  );
-
-                  return (
-                    <Card
-                      key={task.id}
-                      className="cursor-pointer space-y-4 border border-[#ece3d3] bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(249,243,233,0.92))] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#c39a5f] hover:shadow-[0_24px_60px_-34px_rgba(17,20,26,0.35)]"
-                      onClick={() => setSelectedTaskId(task.id)}
+                <div className="space-y-3">
+                  {columnTasks.length === 0 ? (
+                    <div
+                      className={cn(
+                        "rounded-[22px] border border-dashed px-4 py-8 text-center text-sm font-medium transition-colors",
+                        isDropActive
+                          ? "border-[#c39a5f] bg-[#fff7eb] text-[#7c5a28]"
+                          : "border-[#ceb88f] bg-[#fffaf1] text-slate-600"
+                      )}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <button
-                          type="button"
-                          className="text-left text-sm font-semibold text-slate-800 underline-offset-2 hover:underline"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelectedTaskId(task.id);
-                          }}
-                        >
-                          {task.title}
-                        </button>
-                        <PriorityBadge priority={task.priority} />
-                      </div>
+                      {draggedTaskId ? `Drop here to move into ${STATUS_LABELS[status]}.` : `No tasks in ${STATUS_LABELS[status].toLowerCase()} yet.`}
+                    </div>
+                  ) : null}
 
-                      <p className="text-sm leading-6 text-slate-600">{task.description}</p>
+                  {columnTasks.map((task) => {
+                    const assignee = task.assigneeId ? memberMap.get(task.assigneeId) : null;
+                    const votingInsight = getVotingInsight(
+                      task,
+                      members.map((member) => member.id),
+                      votes
+                    );
 
-                      <div className="flex flex-wrap gap-1">
-                        {task.tags.map((tag) => (
-                          <Badge key={tag}>{tag}</Badge>
-                        ))}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 text-xs text-slate-600">
-                        <div className="rounded-2xl border border-[#eadfcd] bg-white/[0.55] p-3">
-                          <p className="uppercase tracking-[0.18em] text-slate-500">Due</p>
-                          <p className="mt-2 text-sm font-semibold text-ink">{formatDate(task.dueDate)}</p>
+                    return (
+                      <Card
+                        key={task.id}
+                        draggable={busyTaskId !== task.id}
+                        onDragStart={(event) => {
+                          setDraggedTaskId(task.id);
+                          event.dataTransfer.effectAllowed = "move";
+                          event.dataTransfer.setData("text/plain", task.id);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedTaskId(null);
+                          setDropTargetStatus(null);
+                        }}
+                        className={cn(
+                          "cursor-grab space-y-4 border border-[#dac6a3] bg-white p-4 shadow-[0_18px_42px_-32px_rgba(17,20,26,0.5)] transition duration-200 hover:-translate-y-1 hover:border-[#c39a5f] active:cursor-grabbing",
+                          draggedTaskId === task.id && "opacity-60"
+                        )}
+                        onClick={() => setSelectedTaskId(task.id)}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <button
+                              type="button"
+                              className="text-left text-base font-semibold leading-6 text-ink underline-offset-2 hover:underline"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setSelectedTaskId(task.id);
+                              }}
+                            >
+                              {task.title}
+                            </button>
+                            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                              Drag to move
+                            </p>
+                          </div>
+                          <PriorityBadge priority={task.priority} />
                         </div>
-                        <div className="rounded-2xl border border-[#eadfcd] bg-white/[0.55] p-3">
-                          <p className="uppercase tracking-[0.18em] text-slate-500">Points</p>
-                          <p className="mt-2 text-sm font-semibold text-ink">{task.officialStoryPoints ?? "Pending"}</p>
-                        </div>
-                        <div className="rounded-2xl border border-[#eadfcd] bg-white/[0.55] p-3">
-                          <p className="uppercase tracking-[0.18em] text-slate-500">Voting</p>
-                          <p className="mt-2 text-sm font-semibold text-ink">
-                            {votingInsight.votedMemberIds.length}/{members.length}
+
+                        <p className="text-sm leading-6 text-slate-700">{task.description}</p>
+
+                        {task.tags.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {task.tags.map((tag) => (
+                              <Badge key={tag}>{tag}</Badge>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        <div className="flex flex-wrap gap-x-5 gap-y-2 text-[0.78rem] leading-6 text-slate-600">
+                          <p>
+                            <span className="font-semibold uppercase tracking-[0.16em] text-slate-500">Due</span>
+                            <span className="ml-2 font-semibold text-ink">{formatDate(task.dueDate)}</span>
+                          </p>
+                          <p>
+                            <span className="font-semibold uppercase tracking-[0.16em] text-slate-500">Points</span>
+                            <span className="ml-2 font-semibold text-ink">{task.officialStoryPoints ?? "Pending"}</span>
+                          </p>
+                          <p>
+                            <span className="font-semibold uppercase tracking-[0.16em] text-slate-500">Voting</span>
+                            <span className="ml-2 font-semibold text-ink">
+                              {votingInsight.votedMemberIds.length}/{members.length}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="font-semibold uppercase tracking-[0.16em] text-slate-500">Fit</span>
+                            <span className="ml-2 font-semibold text-ink">{getWorkloadFit(task, memberPoints, averagePoints)}</span>
                           </p>
                         </div>
-                        <div className="rounded-2xl border border-[#eadfcd] bg-white/[0.55] p-3">
-                          <p className="uppercase tracking-[0.18em] text-slate-500">Fit</p>
-                          <p className="mt-2 text-sm font-semibold text-ink">{getWorkloadFit(task, memberPoints, averagePoints)}</p>
-                        </div>
-                      </div>
 
-                      {assignee ? (
-                        <div className="flex items-center gap-2 rounded-[20px] border border-[#eadfcd] bg-white/[0.55] p-3">
-                          <Avatar member={assignee} size="sm" />
-                          <span className="text-sm font-medium text-slate-700">{assignee.name}</span>
-                        </div>
-                      ) : null}
-
-                      <div
-                        className="space-y-2"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <Select
-                          value={getBoardStatus(task)}
-                          disabled={busyTaskId === task.id}
-                          onChange={(event) => updateStatus(task.id, event.target.value as TaskStatus)}
+                        <div
+                          className="flex items-center justify-between gap-3 border-t border-[#ede1cf] pt-4"
+                          onClick={(event) => event.stopPropagation()}
                         >
-                          {STATUS_ORDER.map((candidateStatus) => (
-                            <option key={candidateStatus} value={candidateStatus}>
-                              {STATUS_LABELS[candidateStatus]}
-                            </option>
-                          ))}
-                        </Select>
+                          <div className="flex min-w-0 items-center gap-2">
+                            {assignee ? <Avatar member={assignee} size="sm" /> : null}
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                                Assignee
+                              </p>
+                              <p className="truncate text-sm font-semibold text-ink">
+                                {assignee?.name ?? "Unassigned"}
+                              </p>
+                            </div>
+                          </div>
 
-                        <Select
-                          value={task.assigneeId ?? ""}
-                          disabled={busyTaskId === task.id}
-                          onChange={(event) => updateAssignee(task.id, event.target.value)}
-                        >
-                          <option value="">Unassigned</option>
-                          {members.map((member) => (
-                            <option key={member.id} value={member.id}>
-                              {member.name}
-                            </option>
-                          ))}
-                        </Select>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })}
+                          <div className="w-36">
+                            <Select
+                              value={task.assigneeId ?? ""}
+                              disabled={busyTaskId === task.id}
+                              onChange={(event) => updateAssignee(task.id, event.target.value)}
+                            >
+                              <option value="">Unassigned</option>
+                              {members.map((member) => (
+                                <option key={member.id} value={member.id}>
+                                  {member.name}
+                                </option>
+                              ))}
+                            </Select>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
         </div>
       </div>
 

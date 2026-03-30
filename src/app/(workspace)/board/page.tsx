@@ -15,7 +15,7 @@ export default async function BoardPage() {
         <p className="section-kicker">Execution board</p>
         <h1 className="mt-3 text-3xl font-semibold text-ink">Scrum Board</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
-          Update task status and assignment while tracking voting readiness and workload fit.
+          Drag tasks between columns to move work forward, then assign owners without the extra board clutter.
         </p>
       </Card>
 
