@@ -97,6 +97,12 @@ export interface TaskComment {
   taskId: string;
   memberId: string;
   message: string;
+  isEncrypted?: boolean;
+  ciphertext?: string | null;
+  iv?: string | null;
+  encryptionVersion?: string | null;
+  encryptionAlgorithm?: string | null;
+  keyId?: string | null;
   createdAt: string;
 }
 

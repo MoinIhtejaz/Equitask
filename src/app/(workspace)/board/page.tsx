@@ -48,6 +48,9 @@ export default async function BoardPage() {
         tasks={snapshot.data.tasks}
         members={snapshot.data.members}
         votes={snapshot.data.votes}
+        comments={snapshot.data.comments}
+        currentUserId={session.id}
+        mode={session.mode}
       />
     </div>
   );

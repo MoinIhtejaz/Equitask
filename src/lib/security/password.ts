@@ -1,0 +1,13 @@
+export const MIN_PASSWORD_LENGTH = 8;
+
+export function getPasswordValidationError(password: string): string | null {
+  if (!password || password.trim().length === 0) {
+    return "Password is required.";
+  }
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+  }
+
+  return null;
+}

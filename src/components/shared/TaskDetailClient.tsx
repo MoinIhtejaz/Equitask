@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { PriorityBadge } from "@/components/shared/PriorityBadge";
@@ -12,6 +12,10 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { VotingBreakdown } from "@/components/voting/VotingBreakdown";
 import { VotingPanel } from "@/components/voting/VotingPanel";
+import {
+  decryptCommentForTeam,
+  encryptCommentForTeam
+} from "@/lib/e2ee";
 import { STATUS_LABELS, STATUS_ORDER } from "@/lib/constants";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { AssignmentRecommendation } from "@/services/recommendationService";
@@ -41,9 +45,55 @@ export function TaskDetailClient({
   const [comment, setComment] = useState("");
   const [commentAs, setCommentAs] = useState(currentUserId);
   const [error, setError] = useState<string | null>(null);
+  const [decryptedComments, setDecryptedComments] = useState<Record<string, string>>({});
 
   const assignee = members.find((member) => member.id === task.assigneeId);
   const assignmentLocked = task.votingRequired && !task.votingClosed;
+
+  useEffect(() => {
+    if (mode !== "supabase") {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function decryptEncryptedComments() {
+      const nextMessages: Record<string, string> = {};
+
+      await Promise.all(
+        comments.map(async (item) => {
+          if (!item.isEncrypted) {
+            nextMessages[item.id] = item.message;
+            return;
+          }
+
+          if (!item.ciphertext || !item.iv) {
+            nextMessages[item.id] = "Unable to decrypt this message on this device.";
+            return;
+          }
+
+          try {
+            nextMessages[item.id] = await decryptCommentForTeam(task.teamId, {
+              ciphertext: item.ciphertext,
+              iv: item.iv
+            });
+          } catch {
+            nextMessages[item.id] = "Unable to decrypt this message on this device.";
+          }
+        })
+      );
+
+      if (!cancelled) {
+        setDecryptedComments(nextMessages);
+      }
+    }
+
+    void decryptEncryptedComments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [comments, mode, task.teamId]);
 
   async function saveStatus(status: string) {
     try {
@@ -99,11 +149,15 @@ export function TaskDetailClient({
     try {
       setIsBusy(true);
       setError(null);
+      const trimmedComment = comment.trim();
+      const encryptedComment =
+        mode === "supabase" ? await encryptCommentForTeam(task.teamId, trimmedComment) : undefined;
       const response = await fetch(`/api/tasks/${task.id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: comment,
+          message: mode === "demo" ? trimmedComment : undefined,
+          encryptedComment,
           memberId: mode === "demo" ? commentAs : undefined
         })
       });
@@ -207,6 +261,12 @@ export function TaskDetailClient({
         <Card>
           <h3 className="mb-3 text-lg font-semibold text-ink">Comments</h3>
 
+          {mode === "supabase" ? (
+            <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900">
+              Comments are encrypted automatically before storage.
+            </p>
+          ) : null}
+
           {mode === "demo" ? (
             <div className="mb-2 max-w-xs">
               <p className="mb-1 text-xs text-slate-500">Comment as</p>
@@ -233,11 +293,16 @@ export function TaskDetailClient({
           <div className="mt-4 space-y-3">
             {comments.map((item) => {
               const author = members.find((member) => member.id === item.memberId);
+              const displayMessage =
+                mode === "supabase"
+                  ? decryptedComments[item.id] ?? (item.isEncrypted ? "Decrypting message..." : item.message)
+                  : item.message;
               return (
                 <div key={item.id} className="rounded-xl border border-slate-200 p-3">
-                  <p className="text-sm text-slate-800">{item.message}</p>
+                  <p className="text-sm text-slate-800">{displayMessage}</p>
                   <p className="mt-1 text-xs text-slate-500">
                     {author?.name ?? "Member"} • {formatDateTime(item.createdAt)}
+                    {mode === "supabase" ? ` • ${item.isEncrypted ? "Encrypted" : "Legacy unencrypted"}` : ""}
                   </p>
                 </div>
               );

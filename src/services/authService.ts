@@ -1,5 +1,6 @@
 import { readSession } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/mode";
+import { getPasswordValidationError } from "@/lib/security/password";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SessionUser } from "@/types";
 
@@ -36,12 +37,16 @@ export async function signInWithSupabase(email: string, password: string): Promi
     throw new Error("Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
   }
 
+  if (!email || getPasswordValidationError(password)) {
+    throw new Error("Invalid email or password.");
+  }
+
   const client = createSupabaseServerClient();
 
   const { data, error } = await client.auth.signInWithPassword({ email, password });
 
   if (error || !data.session || !data.user) {
-    throw new Error(error?.message || "Invalid credentials.");
+    throw new Error("Invalid email or password.");
   }
 
   return {
@@ -61,6 +66,11 @@ export async function signUpWithSupabase(
 ): Promise<SupabaseAuthResult> {
   if (!isSupabaseConfigured()) {
     throw new Error("Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+  }
+
+  const passwordError = getPasswordValidationError(password);
+  if (!name.trim() || !email.trim() || passwordError) {
+    throw new Error(passwordError || "Name and email are required.");
   }
 
   const client = createSupabaseServerClient();

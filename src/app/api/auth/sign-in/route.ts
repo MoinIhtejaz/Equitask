@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getPasswordValidationError } from "@/lib/security/password";
 import { setSession } from "@/lib/auth/session";
 import { signInWithSupabase } from "@/services/authService";
 import { hydrateSessionWithActiveTeam } from "@/services/teamService";
@@ -8,11 +9,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const email = String(body.email || "").trim();
-    const password = String(body.password || "").trim();
+    const password = typeof body.password === "string" ? body.password : "";
 
-    if (!email || !password) {
+    if (!email || getPasswordValidationError(password)) {
       return NextResponse.json(
-        { success: false, error: "Email and password are required." },
+        { success: false, error: "Invalid email or password." },
         { status: 400 }
       );
     }
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Unable to sign in."
+        error: error instanceof Error ? error.message : "Invalid email or password."
       },
       { status: 400 }
     );

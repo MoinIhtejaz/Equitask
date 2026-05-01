@@ -10,6 +10,14 @@ import {
   WorkspaceData
 } from "@/types";
 
+export interface EncryptedCommentInput {
+  ciphertext: string;
+  iv: string;
+  encryptionVersion: string;
+  encryptionAlgorithm: string;
+  keyId?: string | null;
+}
+
 export interface VoteInput {
   taskId: string;
   memberId: string;
@@ -19,7 +27,8 @@ export interface VoteInput {
 export interface CommentInput {
   taskId: string;
   memberId: string;
-  message: string;
+  message?: string;
+  encryptedComment?: EncryptedCommentInput;
 }
 
 export interface CreateTeamInput {

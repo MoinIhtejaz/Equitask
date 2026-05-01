@@ -1,18 +1,29 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { Avatar } from "@/components/shared/Avatar";
 import { PriorityBadge } from "@/components/shared/PriorityBadge";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/Textarea";
 import { VotingBreakdown } from "@/components/voting/VotingBreakdown";
+import {
+  decryptCommentForTeam,
+  encryptCommentForTeam
+} from "@/lib/e2ee";
 import { STATUS_LABELS, STATUS_ORDER } from "@/lib/constants";
-import { cn, formatDate } from "@/lib/utils";
-import { Member, Task, TaskStatus, TaskVote } from "@/types";
+import { cn, formatDate, formatDateTime } from "@/lib/utils";
+import { Member, Task, TaskComment, TaskStatus, TaskVote } from "@/types";
 
 export function BoardTaskModal({
   task,
   members,
   votes,
+  comments,
+  currentUserId,
+  mode,
   isUpdatingStatus,
   onStatusChange,
   onClose
@@ -20,14 +31,106 @@ export function BoardTaskModal({
   task: Task;
   members: Member[];
   votes: TaskVote[];
+  comments: TaskComment[];
+  currentUserId: string;
+  mode: "demo" | "supabase";
   isUpdatingStatus: boolean;
   onStatusChange: (status: TaskStatus) => void;
   onClose: () => void;
 }) {
+  const router = useRouter();
+  const [comment, setComment] = useState("");
+  const [commentAs, setCommentAs] = useState(currentUserId);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [isPostingComment, setIsPostingComment] = useState(false);
+  const [decryptedComments, setDecryptedComments] = useState<Record<string, string>>({});
   const assignee = members.find((member) => member.id === task.assigneeId) ?? null;
   const creator = members.find((member) => member.id === task.createdById) ?? null;
   const creatorName = creator?.name ?? task.createdByName ?? "Unknown member";
   const assigneeName = assignee?.name ?? task.assigneeName ?? "Unassigned";
+
+  useEffect(() => {
+    if (mode !== "supabase") {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function decryptEncryptedComments() {
+      const nextMessages: Record<string, string> = {};
+
+      await Promise.all(
+        comments.map(async (item) => {
+          if (!item.isEncrypted) {
+            nextMessages[item.id] = item.message;
+            return;
+          }
+
+          if (!item.ciphertext || !item.iv) {
+            nextMessages[item.id] = "Unable to decrypt this message on this device.";
+            return;
+          }
+
+          try {
+            nextMessages[item.id] = await decryptCommentForTeam(task.teamId, {
+              ciphertext: item.ciphertext,
+              iv: item.iv
+            });
+          } catch {
+            nextMessages[item.id] = "Unable to decrypt this message on this device.";
+          }
+        })
+      );
+
+      if (!cancelled) {
+        setDecryptedComments(nextMessages);
+      }
+    }
+
+    void decryptEncryptedComments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [comments, mode, task.teamId]);
+
+  async function submitComment() {
+    const trimmedComment = comment.trim();
+
+    if (!trimmedComment) {
+      return;
+    }
+
+    try {
+      setIsPostingComment(true);
+      setCommentError(null);
+
+      const encryptedComment =
+        mode === "supabase" ? await encryptCommentForTeam(task.teamId, trimmedComment) : undefined;
+
+      const response = await fetch(`/api/tasks/${task.id}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: mode === "demo" ? trimmedComment : undefined,
+          encryptedComment,
+          memberId: mode === "demo" ? commentAs : undefined
+        })
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error || "Could not post comment.");
+      }
+
+      setComment("");
+      router.refresh();
+    } catch (caughtError) {
+      setCommentError(caughtError instanceof Error ? caughtError.message : "Could not post comment.");
+    } finally {
+      setIsPostingComment(false);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/[0.45] px-4 py-8 backdrop-blur-sm">
@@ -123,6 +226,86 @@ export function BoardTaskModal({
             This task did not need a completed vote reveal.
           </div>
         )}
+
+        <div className="mt-6 rounded-[28px] border border-[#e1d4be] bg-white/[0.78] p-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="section-kicker">Secure messages</p>
+              <h3 className="mt-2 text-2xl font-semibold text-ink">Comments</h3>
+            </div>
+            {mode === "supabase" ? (
+              <Badge className="w-fit border-emerald-200 bg-emerald-50 text-emerald-800">
+                Encrypted before storage
+              </Badge>
+            ) : null}
+          </div>
+
+          {mode === "supabase" ? (
+            <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900">
+              Comments are encrypted automatically before storage.
+            </p>
+          ) : null}
+
+          {mode === "demo" ? (
+            <div className="mt-4 max-w-xs">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Comment as
+              </p>
+              <select
+                className="w-full rounded-2xl border border-[#d7c7ab] bg-white px-3 py-2 text-sm text-ink outline-none"
+                value={commentAs}
+                onChange={(event) => setCommentAs(event.target.value)}
+              >
+                {members.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          {commentError ? (
+            <p className="mt-4 rounded-2xl bg-rose-100 p-3 text-sm text-rose-700">{commentError}</p>
+          ) : null}
+
+          <Textarea
+            className="mt-4"
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder="Add a comment about blockers, ownership, or decisions..."
+            rows={3}
+          />
+          <Button className="mt-3" onClick={submitComment} disabled={isPostingComment || !comment.trim()}>
+            {isPostingComment ? "Posting..." : "Post Comment"}
+          </Button>
+
+          <div className="mt-5 space-y-3">
+            {comments.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-[#d7c7ab] p-4 text-sm text-slate-600">
+                No comments yet.
+              </p>
+            ) : null}
+
+            {comments.map((item) => {
+              const author = members.find((member) => member.id === item.memberId);
+              const displayMessage =
+                mode === "supabase"
+                  ? decryptedComments[item.id] ?? (item.isEncrypted ? "Decrypting message..." : item.message)
+                  : item.message;
+
+              return (
+                <div key={item.id} className="rounded-2xl border border-[#e1d4be] bg-white/70 p-4">
+                  <p className="text-sm leading-6 text-slate-800">{displayMessage}</p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    {author?.name ?? "Member"} • {formatDateTime(item.createdAt)}
+                    {mode === "supabase" ? ` • ${item.isEncrypted ? "Encrypted" : "Legacy unencrypted"}` : ""}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

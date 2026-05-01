@@ -147,12 +147,17 @@ export const demoProvider: DataProvider = {
   async addComment(_session, input: CommentInput): Promise<TaskComment> {
     const state = getState();
     getTaskByIdOrThrow(state, input.taskId);
+    const message = input.message?.trim();
+
+    if (!message) {
+      throw new Error("Comment cannot be empty.");
+    }
 
     const comment: TaskComment = {
       id: `comment-${crypto.randomUUID()}`,
       taskId: input.taskId,
       memberId: input.memberId,
-      message: input.message,
+      message,
       createdAt: nowIso()
     };
 
