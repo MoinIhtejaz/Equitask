@@ -11,13 +11,16 @@ import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
 import { STATUS_LABELS, STATUS_ORDER } from "@/lib/constants";
 import { cn, formatDate } from "@/lib/utils";
-import { Task, TaskStatus, TaskVote, Member } from "@/types";
+import { Task, TaskComment, TaskStatus, TaskVote, Member } from "@/types";
 import { getVotingInsight } from "@/services/voteService";
 
 interface BoardClientProps {
   tasks: Task[];
   members: Member[];
   votes: TaskVote[];
+  comments: TaskComment[];
+  currentUserId: string;
+  mode: "demo" | "supabase";
 }
 
 function getWorkloadFit(task: Task, memberPoints: Record<string, number>, average: number): string {
@@ -39,7 +42,7 @@ function getBoardStatus(task: Task): TaskStatus {
   return task.status;
 }
 
-export function BoardClient({ tasks, members, votes }: BoardClientProps) {
+export function BoardClient({ tasks, members, votes, comments, currentUserId, mode }: BoardClientProps) {
   const router = useRouter();
   const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -401,6 +404,11 @@ export function BoardClient({ tasks, members, votes }: BoardClientProps) {
           task={selectedTask}
           members={members}
           votes={votes.filter((vote) => vote.taskId === selectedTask.id)}
+          comments={comments
+            .filter((comment) => comment.taskId === selectedTask.id)
+            .sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())}
+          currentUserId={currentUserId}
+          mode={mode}
           isUpdatingStatus={busyTaskId === selectedTask.id}
           onStatusChange={(status) => void updateStatus(selectedTask.id, status, true)}
           onClose={() => setSelectedTaskId(null)}

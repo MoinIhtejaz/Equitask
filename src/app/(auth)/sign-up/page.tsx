@@ -7,6 +7,8 @@ import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { getPasswordValidationError } from "@/lib/security/password";
+import { getSecureCredentialOriginError } from "@/lib/security/secureOrigin";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -27,6 +29,16 @@ export default function SignUpPage() {
     event.preventDefault();
 
     try {
+      const originError = getSecureCredentialOriginError();
+      const passwordError = getPasswordValidationError(password);
+
+      if (originError || passwordError) {
+        setError(originError || passwordError);
+        setMessage(null);
+        setWarning(null);
+        return;
+      }
+
       setIsBusy(true);
       setError(null);
       setMessage(null);

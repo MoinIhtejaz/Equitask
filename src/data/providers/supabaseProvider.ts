@@ -68,7 +68,12 @@ interface CommentRow {
   id: string;
   task_id: string;
   member_id: string;
-  body: string;
+  body: string | null;
+  ciphertext: string | null;
+  iv: string | null;
+  encryption_version: string | null;
+  encryption_algorithm: string | null;
+  key_id: string | null;
   created_at: string;
 }
 
@@ -230,13 +235,7 @@ function mapWorkspace(
       value: vote.vote_value,
       createdAt: vote.created_at
     })),
-    comments: comments.map((comment) => ({
-      id: comment.id,
-      taskId: comment.task_id,
-      memberId: comment.member_id,
-      message: comment.body,
-      createdAt: comment.created_at
-    })),
+    comments: comments.map(mapCommentRow),
     notifications: notifications.map((item) => ({
       id: item.id,
       teamId: item.team_id,
@@ -248,6 +247,29 @@ function mapWorkspace(
       severity: item.severity,
       createdAt: item.created_at
     }))
+  };
+}
+
+function mapCommentRow(comment: CommentRow): TaskComment {
+  const isEncrypted = Boolean(
+    comment.ciphertext &&
+      comment.iv &&
+      comment.encryption_version &&
+      comment.encryption_algorithm
+  );
+
+  return {
+    id: comment.id,
+    taskId: comment.task_id,
+    memberId: comment.member_id,
+    message: isEncrypted ? "" : comment.body ?? "",
+    isEncrypted,
+    ciphertext: comment.ciphertext,
+    iv: comment.iv,
+    encryptionVersion: comment.encryption_version,
+    encryptionAlgorithm: comment.encryption_algorithm,
+    keyId: comment.key_id,
+    createdAt: comment.created_at
   };
 }
 
@@ -568,13 +590,23 @@ export const supabaseProvider: DataProvider = {
   async addComment(session, input: CommentInput) {
     await ensureTaskBelongsToTeam(session, input.taskId);
     const client = createSupabaseServerClient(session.accessToken);
+    const encryptedComment = input.encryptedComment;
+
+    if (!encryptedComment) {
+      throw new Error("Encrypted comment payload is required in Supabase mode.");
+    }
 
     const insertResult = await client
       .from("comments")
       .insert({
         task_id: input.taskId,
         member_id: input.memberId,
-        body: input.message,
+        body: null,
+        ciphertext: encryptedComment.ciphertext,
+        iv: encryptedComment.iv,
+        encryption_version: encryptedComment.encryptionVersion,
+        encryption_algorithm: encryptedComment.encryptionAlgorithm,
+        key_id: encryptedComment.keyId ?? null,
         created_at: new Date().toISOString()
       })
       .select("*")
@@ -591,13 +623,7 @@ export const supabaseProvider: DataProvider = {
       .update({ updated_at: new Date().toISOString() })
       .eq("id", input.taskId);
 
-    return {
-      id: comment.id,
-      taskId: comment.task_id,
-      memberId: comment.member_id,
-      message: comment.body,
-      createdAt: comment.created_at
-    };
+    return mapCommentRow(comment);
   },
 
   async listTeams(session) {
