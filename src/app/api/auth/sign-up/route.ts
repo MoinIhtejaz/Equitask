@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getPasswordValidationError } from "@/lib/security/password";
 import { setSession } from "@/lib/auth/session";
 import { signUpWithSupabase } from "@/services/authService";
-import { hydrateSessionWithActiveTeam, joinTeam } from "@/services/teamService";
+import { hydrateSessionWithActiveTeam } from "@/services/teamService";
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +11,6 @@ export async function POST(request: Request) {
     const name = String(body.name || "").trim();
     const email = String(body.email || "").trim();
     const password = typeof body.password === "string" ? body.password : "";
-    const teamName = String(body.teamName || "").trim();
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -25,30 +24,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: passwordError }, { status: 400 });
     }
 
-    if (!teamName) {
-      return NextResponse.json(
-        { success: false, error: "Team name is required." },
-        { status: 400 }
-      );
-    }
-
     const result = await signUpWithSupabase(name, email, password);
 
     let session = result.session;
     let message = result.message;
-    let teamWarning: string | null = null;
 
     if (session) {
-      try {
-        const joined = await joinTeam(session, { teamName });
-        session = await hydrateSessionWithActiveTeam(session, joined.teamId);
-      } catch (teamError) {
-        session = await hydrateSessionWithActiveTeam(session);
-        teamWarning =
-          teamError instanceof Error
-            ? teamError.message
-            : "Account created, but we could not attach you to the team workspace.";
-      }
+      session = await hydrateSessionWithActiveTeam(session);
     }
 
     const hasTeam = Boolean(session?.teamId);
@@ -56,10 +38,9 @@ export async function POST(request: Request) {
       success: true,
       mode: "supabase",
       message,
-      teamWarning,
       needsEmailVerification: !session,
       hasTeam,
-      redirectTo: "/dashboard"
+      redirectTo: hasTeam ? "/dashboard" : "/teams"
     });
 
     if (session) {

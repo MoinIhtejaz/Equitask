@@ -4,12 +4,13 @@
 
 Equitask is a full stack university group work app for managing team projects, tasks, story point voting, scrum boards, comments, notifications, and analytics. The project is built with Next.js App Router, TypeScript, Tailwind CSS, Next.js API routes, Supabase, and Vercel.
 
-The app has two modes:
+The website now uses Supabase mode for normal access. Earlier demo-login entry points have been
+removed, so users enter the app through real Supabase Auth accounts. Seeded data and the old provider
+abstraction still exist in the codebase for development history, but the public demo login flow is no
+longer exposed.
 
-- Demo mode: uses seeded local data so the app still works without Supabase.
-- Supabase mode: uses real Supabase Auth, teams, tasks, votes, comments, and persistent database records.
-
-For Phase 3 Task 1, the security implementation focuses on the Supabase mode because that is where real users, real authentication, and persistent data exist. Demo mode was kept working, but the security evidence should be demonstrated using Supabase mode.
+For Phase 3 Task 1, the security implementation focuses on Supabase mode because that is where real
+users, real authentication, and persistent data exist.
 
 The four assessment requirements we implemented are:
 
@@ -52,11 +53,11 @@ In Equitask, task comments are treated as the app's messages because there is no
 | `src/app/(auth)/sign-up/page.tsx` | Added secure origin checking and password validation before sign-up submission. | Stops weak passwords and insecure origin submissions before the API route is called. |
 | `src/lib/auth/session.ts` | Confirms app sessions use an `httpOnly` cookie, `sameSite=lax`, and `secure` in production. | Keeps app session data out of normal JavaScript access and uses secure cookies in production. |
 | `next.config.mjs` | Added security headers for every route. | Improves browser security with HSTS in production, nosniff, frame protection, referrer policy, and disabled unnecessary browser permissions. |
-| `src/app/api/tasks/[taskId]/comments/route.ts` | Supabase mode now requires an encrypted comment payload. Demo mode can still use plaintext seeded comments. | Prevents new Supabase comments from being saved as readable plaintext. |
+| `src/app/api/tasks/[taskId]/comments/route.ts` | Supabase mode now requires an encrypted comment payload. | Prevents new Supabase comments from being saved as readable plaintext. |
 | `src/components/shared/TaskDetailClient.tsx` | Encrypts comments in the browser before posting and decrypts loaded comments in the browser for display. | Gives users a normal comment UI while storing ciphertext in Supabase. |
 | `src/components/board/BoardTaskModal.tsx` | Added the same automatic encrypted comment flow inside the scrum board task window. | Allows comments from the board modal while preserving encrypted storage. |
 | `src/data/providers/supabaseProvider.ts` | Maps encrypted comment columns from Supabase, inserts new comments with `body: null`, and stores ciphertext plus metadata. | Ensures Supabase receives ciphertext only for new comments. |
-| `src/data/providers/demoProvider.ts` | Updated comment handling to keep demo mode working with optional encrypted comment fields. | Keeps seeded demo mode stable after the service layer changed. |
+| `src/data/providers/demoProvider.ts` | Updated the legacy seeded provider to stay compatible with the shared service layer. | Prevents old development fallback code from breaking TypeScript. |
 | `src/data/providers/providerTypes.ts` | Added encrypted comment input types. | Allows API routes and providers to pass encryption metadata cleanly. |
 | `src/types/index.ts` | Added comment encryption fields such as `ciphertext`, `iv`, `encryptionVersion`, `encryptionAlgorithm`, and `keyId`. | Lets the UI and data layer know whether a comment is encrypted or legacy plaintext. |
 
@@ -323,9 +324,8 @@ In Supabase mode:
 - It rejects missing or invalid encrypted payloads.
 - It does not accept new plaintext comments.
 
-In demo mode:
-
-- It still allows normal demo comments so seeded demo mode does not break.
+The old seeded provider path can still handle plaintext development records internally, but the
+website no longer exposes demo login. Normal Supabase users must submit encrypted comment payloads.
 
 ### What Supabase Stores
 
@@ -467,22 +467,21 @@ Use this checklist before recording the video.
 
 1. Run `npm install` if dependencies are missing.
 2. Run `npm run dev`.
-3. Test demo login to confirm demo mode still works.
-4. Configure Supabase environment variables.
-5. Test Supabase sign up with an 8 character or longer password.
-6. Test Supabase sign in.
-7. Inspect `public.profiles` and confirm there is no password column.
-8. Explain that password hashes live in Supabase Auth under the protected `auth.users.encrypted_password` column.
-9. Open the deployed Vercel app and confirm the URL uses HTTPS.
-10. Open DevTools Network tab and sign in.
-11. Confirm the login request is POST and the password is not in the URL.
-12. Open a task on the scrum board.
-13. Post a new comment.
-14. Inspect Supabase `public.comments`.
-15. Confirm the new row has `ciphertext` and `iv`.
-16. Confirm `body` is null for the new encrypted comment.
-17. Refresh the page and confirm the comment still appears readable in the UI.
-18. Test a wrong password and confirm the login error is generic.
+3. Configure Supabase environment variables.
+4. Test Supabase sign up with an 8 character or longer password.
+5. Test Supabase sign in.
+6. Inspect `public.profiles` and confirm there is no password column.
+7. Explain that password hashes live in Supabase Auth under the protected `auth.users.encrypted_password` column.
+8. Open the deployed Vercel app and confirm the URL uses HTTPS.
+9. Open DevTools Network tab and sign in.
+10. Confirm the login request is POST and the password is not in the URL.
+11. Open a task on the scrum board.
+12. Post a new comment.
+13. Inspect Supabase `public.comments`.
+14. Confirm the new row has `ciphertext` and `iv`.
+15. Confirm `body` is null for the new encrypted comment.
+16. Refresh the page and confirm the comment still appears readable in the UI.
+17. Test a wrong password and confirm the login error is generic.
 
 ## 10. Five Minute Video Demo Script
 
@@ -490,7 +489,7 @@ Use this checklist before recording the video.
 
 Say:
 
-> Equitask is a Next.js, TypeScript, Supabase, and Vercel app. It supports demo mode and Supabase mode. For Phase 3, we implemented four security requirements in Supabase mode: secure password storage, server authentication on login, secure password transmission, and end to end encrypted comments.
+> Equitask is a Next.js, TypeScript, Supabase, and Vercel app. The live website now uses Supabase sign up and sign in for normal access. For Phase 3, we implemented four security requirements in Supabase mode: secure password storage, server authentication on login, secure password transmission, and end to end encrypted comments.
 
 Show:
 
@@ -576,7 +575,7 @@ Content Security Policy was not added because a strict CSP can easily break Next
 | `src/components/shared/TaskDetailClient.tsx` | Modified comment UI encryption/decryption. | Encrypt before POST, decrypt after load, show a minimal encrypted storage notice. |
 | `src/components/board/BoardTaskModal.tsx` | Modified board task window comment UI. | Let board comments use the same automatic encryption flow without extra key controls. |
 | `src/data/providers/supabaseProvider.ts` | Modified comment row mapping and insertion. | Store ciphertext and metadata only for new Supabase comments. |
-| `src/data/providers/demoProvider.ts` | Adjusted demo comment handling. | Keep demo mode comments working with optional comment input. |
+| `src/data/providers/demoProvider.ts` | Adjusted legacy seeded-provider comment handling. | Keep old provider abstraction type-safe after encrypted comment inputs were added. |
 | `src/data/providers/providerTypes.ts` | Added encrypted comment input type. | Pass encrypted comment payload through service/provider layer. |
 | `src/types/index.ts` | Added encrypted comment metadata fields. | Let UI distinguish encrypted and legacy comments. |
 | `next.config.mjs` | Added security headers. | Improve baseline browser security controls. |

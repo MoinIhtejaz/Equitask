@@ -2,10 +2,8 @@
 
 Equitask is a full-stack web app for university group assignments that prioritizes fair workload distribution, task effort voting, availability-aware assignment, accountability, and team analytics.
 
-The app supports two clean operating modes:
-
-- Demo mode (works instantly with seeded local data, no Supabase required)
-- Supabase mode (real sign-up/sign-in and persisted data once Supabase is wired)
+The app now uses Supabase authentication for normal access. Earlier demo-login entry points have
+been removed, so users sign up or sign in with a real Supabase-backed account.
 
 ## Project Overview
 
@@ -20,8 +18,7 @@ Equitask solves group-project imbalance by making effort estimation and assignme
 ## Key Features
 
 - Landing page with product positioning and CTA flow
-- Demo login (always available)
-- Supabase-ready sign-up and sign-in (email/password)
+- Supabase sign-up and sign-in (email/password)
 - Team Hub for creating teams, joining by team code, and switching active team
 - Dashboard with summary cards, fairness score, activity feed, notifications, progress chart, and member cards
 - Scrum board with status updates, assignment updates, and task creation panel
@@ -29,7 +26,7 @@ Equitask solves group-project imbalance by making effort estimation and assignme
 - Dedicated voting center for planning-poker style estimation
 - Member profile page with timetable-style weekly availability
 - Analytics page with Recharts visualizations
-- Settings page for mode/session visibility and switching
+- Settings page for session and account visibility
 
 ## Tech Stack
 
@@ -61,20 +58,14 @@ npm run dev
 http://localhost:3000
 ```
 
-## Demo Mode (No Supabase Required)
+## Supabase Auth Required
 
-Demo mode works immediately.
+The public demo login flow has been removed. To use the workspace, configure Supabase and sign in
+through the normal email/password flow.
 
-- Click `Demo Login` on landing/sign-in
-- Uses seeded team data with exactly 4 members:
-  - Moin
-  - Peter
-  - James
-  - Jaret
-- Includes seeded project context:
-  - Team: `Team Equitask Alpha`
-  - Project: `Equitask Student Collaboration Platform`
-- Includes 12 seeded tasks with mixed statuses, pending votes, disagreement, overdue work, and slight overload
+The codebase still contains seeded data and a provider abstraction for development history and safe
+fallback testing, but the website no longer exposes a demo login button, settings switch, sidebar
+switch, or any demo workspace controls in the UI.
 
 ## Environment Variables You Must Add Manually
 
@@ -124,14 +115,11 @@ Add these to your local environment and Vercel project settings:
 - If no team membership exists, login redirects to `/teams` (Team Hub)
 - Workspace, board, voting, and analytics all load from the active team in session
 
-### 6. Switching from Demo Mode to Supabase Mode
+### 6. Supabase Session Behaviour
 
-- Demo mode stays available at all times
-- Supabase mode is used when:
-  - env vars are configured
-  - user signs in through Supabase form
-- Team context is saved in session (`teamId`) so users return to their team workspace directly
-- You can switch back to demo mode from `Settings`
+- Supabase mode is used when env vars are configured and the user signs in through the Supabase form.
+- Team context is saved in session (`teamId`) so users return to their team workspace directly.
+- Demo login and demo switching are no longer exposed in the website.
 
 ## SQL to Run in Supabase
 
@@ -529,12 +517,12 @@ src/
   types/
 ```
 
-### Demo Mode Architecture
+### Seeded Data Provider
 
-- Session mode: `demo`
-- Data source: in-memory seeded provider (`demoProvider`)
-- No Supabase dependency
-- Demo login available from landing/sign-in
+- The repository still includes seeded data and `demoProvider` for development history and provider
+  abstraction.
+- Public demo login has been removed from the website.
+- Workspace access now requires a Supabase-backed session.
 
 ### Supabase Mode Architecture
 
@@ -563,7 +551,8 @@ The app uses:
   - `teamService`
   - `workspaceService`
 
-This avoids business-logic duplication and lets the same UI run against either data source.
+This avoids business-logic duplication. The live website now uses Supabase-backed data for normal
+user access.
 
 ## Fairness Score Logic
 
@@ -604,10 +593,11 @@ No custom Node server is required; app uses standard Next.js conventions.
 - Verify email/password provider is enabled.
 - If email confirmation is enabled, confirm user email first.
 
-### App stays in demo mode
+### App redirects back to sign-in
 
 - Ensure env vars are set and app restarted.
-- Use `/sign-in` form (not Demo Login) to create a Supabase session.
+- Use `/sign-in` or `/sign-up` to create a Supabase session.
+- Old browser cookies from the removed demo flow should be replaced by signing in again.
 
 ### SQL errors on policy creation
 

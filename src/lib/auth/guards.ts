@@ -5,7 +5,7 @@ import { SessionUser } from "@/types";
 
 export function requireWorkspaceSession(): SessionUser {
   const session = getCurrentSession();
-  if (!session) {
+  if (!session || session.mode !== "supabase") {
     redirect("/sign-in");
   }
 

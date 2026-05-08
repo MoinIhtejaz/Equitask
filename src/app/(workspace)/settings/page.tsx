@@ -17,8 +17,7 @@ export default function SettingsPage() {
 
       <Card>
         <h2 className="text-lg font-semibold text-ink">Current Session</h2>
-        <p className="mt-2 text-sm text-slate-600">Mode: {session.mode}</p>
-        <p className="text-sm text-slate-600">User: {session.name}</p>
+        <p className="mt-2 text-sm text-slate-600">User: {session.name}</p>
         <p className="text-sm text-slate-600">Active team: {session.teamName ?? "Not selected"}</p>
       </Card>
 

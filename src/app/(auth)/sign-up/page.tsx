@@ -19,10 +19,8 @@ export default function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [teamName, setTeamName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -35,14 +33,12 @@ export default function SignUpPage() {
       if (originError || passwordError) {
         setError(originError || passwordError);
         setMessage(null);
-        setWarning(null);
         return;
       }
 
       setIsBusy(true);
       setError(null);
       setMessage(null);
-      setWarning(null);
 
       const response = await fetch("/api/auth/sign-up", {
         method: "POST",
@@ -50,8 +46,7 @@ export default function SignUpPage() {
         body: JSON.stringify({
           name,
           email,
-          password,
-          teamName
+          password
         })
       });
 
@@ -62,11 +57,8 @@ export default function SignUpPage() {
       }
 
       setMessage(payload.message || "Account created.");
-      if (payload.teamWarning) {
-        setWarning(payload.teamWarning);
-      }
 
-      if (!payload.needsEmailVerification && payload.hasTeam) {
+      if (!payload.needsEmailVerification) {
         router.push(payload.redirectTo || "/dashboard");
         router.refresh();
       }
@@ -83,19 +75,18 @@ export default function SignUpPage() {
         <div>
           <h1 className="text-2xl font-bold text-ink">Create your Equitask account</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Join your shared team workspace by entering the exact team name.
+            Create your account first, then join or manage your team from the Team page.
           </p>
         </div>
 
         {!SUPABASE_CONFIGURED ? (
           <p className="rounded-xl bg-amber-100 p-3 text-sm text-amber-800">
-            Supabase is not configured yet. Add env vars first, or use demo mode from sign-in.
+            Supabase is not configured yet. Add the required environment variables before creating an account.
           </p>
         ) : null}
 
         {error ? <p className="rounded-xl bg-rose-100 p-3 text-sm text-rose-700">{error}</p> : null}
         {message ? <p className="rounded-xl bg-emerald-100 p-3 text-sm text-emerald-700">{message}</p> : null}
-        {warning ? <p className="rounded-xl bg-amber-100 p-3 text-sm text-amber-800">{warning}</p> : null}
 
         <form className="space-y-3" onSubmit={onSubmit}>
           <div>
@@ -136,22 +127,6 @@ export default function SignUpPage() {
               required
               minLength={8}
             />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Team name
-            </label>
-            <Input
-              value={teamName}
-              onChange={(event) => setTeamName(event.target.value)}
-              type="text"
-              placeholder="team 05"
-              required
-            />
-            <p className="mt-1 text-xs text-slate-500">
-              Enter the team name exactly as it was created so you are added to the same workspace.
-            </p>
           </div>
 
           <Button className="w-full" disabled={isBusy || !SUPABASE_CONFIGURED}>
