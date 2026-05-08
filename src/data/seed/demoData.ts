@@ -122,7 +122,7 @@ const tasks: Task[] = [
     id: "task-3",
     teamId: TEAM_ID,
     title: "Build sign in flow",
-    description: "Support both demo login and Supabase-ready email/password auth.",
+    description: "Support Supabase-ready email/password auth.",
     status: "review",
     priority: "high",
     tags: ["auth", "backend"],

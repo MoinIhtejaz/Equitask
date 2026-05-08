@@ -18,18 +18,10 @@ export function requireSession(): SessionUser {
   if (!session) {
     throw new Error("Not authenticated.");
   }
+  if (session.mode !== "supabase") {
+    throw new Error("Supabase sign-in required.");
+  }
   return session;
-}
-
-export function createDemoSession(): SessionUser {
-  return {
-    id: "member-moin",
-    mode: "demo",
-    name: "Moin",
-    teamId: "team-alpha",
-    teamName: "Team Equitask Alpha",
-    projectName: "Equitask Student Collaboration Platform"
-  };
 }
 
 export async function signInWithSupabase(email: string, password: string): Promise<SessionUser> {

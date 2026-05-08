@@ -1,5 +1,6 @@
+import Link from "next/link";
+
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { FinalizeTeamPanel } from "@/components/dashboard/FinalizeTeamPanel";
 import { MemberSummaryCards } from "@/components/dashboard/MemberSummaryCards";
 import { ProgressChart } from "@/components/dashboard/ProgressChart";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -9,7 +10,6 @@ import { SummaryCard } from "@/components/shared/SummaryCard";
 import { requireWorkspaceSession } from "@/lib/auth/guards";
 import { buildAnalyticsSnapshot } from "@/services/analyticsService";
 import { buildMemberSummaries } from "@/services/memberService";
-import { listTeams } from "@/services/teamService";
 import { getTaskCompletionPercentage } from "@/services/taskService";
 import { getWorkspaceSnapshot } from "@/services/workspaceService";
 
@@ -17,8 +17,6 @@ export default async function DashboardPage() {
   const session = requireWorkspaceSession();
 
   if (!session.teamId) {
-    const teams = session.mode === "supabase" ? await listTeams(session) : [];
-
     return (
       <div className="space-y-6">
         <section className="grid gap-4 xl:grid-cols-[1.45fr,0.85fr]">
@@ -30,14 +28,20 @@ export default async function DashboardPage() {
               Your account is ready, but your team is not finalized yet. Once you connect to a team,
               this space becomes the shared command center for analytics, voting, notifications, and scrum work.
             </p>
+            <Link
+              href="/teams"
+              className="mt-5 inline-flex rounded-2xl border border-[#d5b786] bg-[linear-gradient(135deg,#f6e9cb_0%,#e8c98e_100%)] px-4 py-3 text-sm font-semibold text-ink shadow-[0_16px_36px_-24px_rgba(195,154,95,0.85)] transition hover:-translate-y-0.5 hover:brightness-[1.03]"
+            >
+              Open Team Management
+            </Link>
           </div>
 
           <div className="lux-surface rounded-[32px] px-6 py-7">
             <p className="section-kicker">Next move</p>
             <h2 className="mt-3 text-2xl font-semibold text-ink">Attach yourself to a team</h2>
             <p className="mt-3 text-sm leading-7 text-slate-600">
-              Team analytics are calculated at the team level, not per user. Once you create or join a team below,
-              the full workspace activates automatically.
+              Team analytics are calculated at the team level, not per user. Open Team Management to create or join
+              the shared workspace, then the full product activates automatically.
             </p>
           </div>
         </section>
@@ -46,11 +50,7 @@ export default async function DashboardPage() {
           <SummaryCard label="Team Status" value="Pending" caption="No team attached yet" />
           <SummaryCard label="Analytics Scope" value="Team" caption="Not individual-only" />
           <SummaryCard label="Voting Flow" value="Ready" caption="Hidden until all votes finish" />
-          <SummaryCard label="Next Step" value="Finalize" caption="Create or join a team below" />
-        </div>
-
-        <div className="pt-2">
-          <FinalizeTeamPanel teams={teams} />
+          <SummaryCard label="Next Step" value="Team" caption="Open Team Management" />
         </div>
       </div>
     );

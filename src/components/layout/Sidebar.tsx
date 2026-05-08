@@ -18,6 +18,7 @@ type LinkItem = {
 
 const LINKS: LinkItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
+  { href: "/teams", label: "Team", icon: TeamIcon },
   { href: "/board", label: "Scrum Board", icon: BoardIcon },
   { href: "/voting", label: "Voting", icon: VotingIcon },
   { href: "/analytics", label: "Analytics", icon: AnalyticsIcon },
@@ -45,6 +46,17 @@ function BoardIcon(className = "h-5 w-5") {
       <path d="M4 18h16" />
       <path d="M7 4v16" />
       <path d="M17 4v16" />
+    </svg>
+  );
+}
+
+function TeamIcon(className = "h-5 w-5") {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+      <path d="M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+      <path d="M3 20a5 5 0 0 1 10 0" />
+      <path d="M13 18a5 5 0 0 1 8 2" />
     </svg>
   );
 }
@@ -142,18 +154,6 @@ export function Sidebar({ session }: { session: SessionUser }) {
       setIsSigningOut(true);
       await fetch("/api/auth/sign-out", { method: "POST" });
       router.push("/sign-in");
-      router.refresh();
-    } finally {
-      setIsSigningOut(false);
-      setMenuOpen(false);
-    }
-  }
-
-  async function switchToDemo() {
-    try {
-      setIsSigningOut(true);
-      await fetch("/api/auth/demo", { method: "POST" });
-      router.push("/dashboard");
       router.refresh();
     } finally {
       setIsSigningOut(false);
@@ -262,9 +262,6 @@ export function Sidebar({ session }: { session: SessionUser }) {
               >
                 <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/[0.42]">Account</p>
                 <p className="mt-3 text-base font-semibold text-[#fff6e4]">{session.name}</p>
-                <p className="mt-1 text-sm text-white/[0.56]">
-                  {session.mode === "demo" ? "Demo mode" : "Supabase mode"}
-                </p>
                 <p className="mt-3 rounded-2xl border border-white/[0.08] bg-white/5 px-3 py-2 text-sm text-white/[0.72]">
                   {session.teamName ? `Team: ${session.teamName}` : "No team finalized yet"}
                 </p>
@@ -280,11 +277,6 @@ export function Sidebar({ session }: { session: SessionUser }) {
                 ) : null}
 
                 <div className="mt-4 flex flex-col gap-2">
-                  {session.mode !== "demo" ? (
-                    <Button variant="secondary" onClick={switchToDemo} disabled={isSigningOut}>
-                      Use Demo Workspace
-                    </Button>
-                  ) : null}
                   <Button variant="ghost" onClick={signOut} disabled={isSigningOut}>
                     {isSigningOut ? "Signing out..." : "Sign Out"}
                   </Button>
@@ -319,7 +311,7 @@ export function Sidebar({ session }: { session: SessionUser }) {
                       <span className="truncate">Signed in as {session.name}</span>
                     </p>
                     <p className="mt-1 text-xs leading-5 text-white/[0.52]">
-                      {session.teamName ?? "Team setup pending"} • {session.mode === "demo" ? "Demo" : "Supabase"}
+                      {session.teamName ?? "Team setup pending"}
                     </p>
                   </motion.div>
                 ) : null}

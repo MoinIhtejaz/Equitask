@@ -19,9 +19,6 @@ export function TopBar({ session }: { session: SessionUser }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex rounded-full border border-white/70 bg-white/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-600 shadow-sm backdrop-blur">
-            {session.mode === "demo" ? "Demo workspace" : "Supabase live"}
-          </span>
           <span className="inline-flex rounded-full border border-[#d9bf92] bg-[#f3e2bf]/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#76562a] shadow-sm">
             {session.teamName ? "Team synced" : "Team setup pending"}
           </span>

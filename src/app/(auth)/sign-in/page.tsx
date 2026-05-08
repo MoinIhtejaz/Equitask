@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -20,16 +20,8 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
-  const [busyMode, setBusyMode] = useState<"demo" | "signin" | null>(null);
   const [loadingStep, setLoadingStep] = useState(0);
-
-  const transitionSteps = useMemo(
-    () =>
-      busyMode === "demo"
-        ? ["Opening demo workspace", "Loading seeded team data", "Preparing dashboard"]
-        : ["Verifying your account", "Loading team workspace", "Opening dashboard"],
-    [busyMode]
-  );
+  const transitionSteps = ["Verifying your account", "Loading team workspace", "Opening dashboard"];
 
   useEffect(() => {
     router.prefetch("/dashboard");
@@ -48,20 +40,6 @@ export default function SignInPage() {
     return () => window.clearInterval(interval);
   }, [isBusy, transitionSteps.length]);
 
-  async function demoLogin() {
-    try {
-      setIsBusy(true);
-      setBusyMode("demo");
-      setError(null);
-      await fetch("/api/auth/demo", { method: "POST" });
-      window.location.assign("/dashboard");
-    } catch {
-      setError("Demo login failed. Please try again.");
-      setIsBusy(false);
-      setBusyMode(null);
-    }
-  }
-
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -75,7 +53,6 @@ export default function SignInPage() {
       }
 
       setIsBusy(true);
-      setBusyMode("signin");
       setError(null);
 
       const response = await fetch("/api/auth/sign-in", {
@@ -94,7 +71,6 @@ export default function SignInPage() {
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Sign-in failed.");
       setIsBusy(false);
-      setBusyMode(null);
     }
   }
 
@@ -104,9 +80,7 @@ export default function SignInPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#090b0f]/80 px-6 backdrop-blur-md">
           <div className="w-full max-w-md rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(195,154,95,0.16),transparent_32%),linear-gradient(180deg,#151a22_0%,#0f1319_100%)] p-8 text-white shadow-[0_30px_90px_-40px_rgba(0,0,0,0.95)]">
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[#d6ba87]">Equitask</p>
-            <h2 className="mt-4 text-3xl font-semibold text-[#fff7e8]">
-              {busyMode === "demo" ? "Launching demo mode" : "Signing you in"}
-            </h2>
+            <h2 className="mt-4 text-3xl font-semibold text-[#fff7e8]">Signing you in</h2>
             <p className="mt-3 text-sm leading-7 text-white/70">{transitionSteps[loadingStep]}</p>
 
             <div className="mt-6 h-2.5 overflow-hidden rounded-full bg-white/10">
@@ -127,25 +101,16 @@ export default function SignInPage() {
       <Card className="w-full max-w-md space-y-5">
         <div>
           <h1 className="text-2xl font-bold text-ink">Sign in to Equitask</h1>
-          <p className="mt-1 text-sm text-slate-500">Continue with demo mode or Supabase auth.</p>
+          <p className="mt-1 text-sm text-slate-500">Continue with your Supabase account.</p>
         </div>
 
         {!SUPABASE_CONFIGURED ? (
           <p className="rounded-xl bg-amber-100 p-3 text-sm text-amber-800">
-            Supabase is not configured yet. Demo mode is available now.
+            Supabase is not configured yet. Add the required environment variables before signing in.
           </p>
         ) : null}
 
         {error ? <p className="rounded-xl bg-rose-100 p-3 text-sm text-rose-700">{error}</p> : null}
-
-        <Button variant="secondary" className="w-full" onClick={demoLogin} disabled={isBusy}>
-          Demo Login
-        </Button>
-
-        <div className="relative py-1 text-center text-xs text-slate-400">
-          <span className="bg-white px-2">or sign in with email</span>
-          <div className="absolute left-0 top-1/2 -z-10 h-px w-full bg-slate-200" />
-        </div>
 
         <form className="space-y-3" onSubmit={onSubmit}>
           <div>

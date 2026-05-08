@@ -1,17 +1,14 @@
+import Link from "next/link";
+
 import { BoardClient } from "@/components/board/BoardClient";
-import { FinalizeTeamPanel } from "@/components/dashboard/FinalizeTeamPanel";
-import { TaskComposer } from "@/components/tasks/TaskComposer";
 import { Card } from "@/components/ui/Card";
 import { requireWorkspaceSession } from "@/lib/auth/guards";
-import { listTeams } from "@/services/teamService";
 import { getWorkspaceSnapshot } from "@/services/workspaceService";
 
 export default async function BoardPage() {
   const session = requireWorkspaceSession();
 
   if (!session.teamId) {
-    const teams = session.mode === "supabase" ? await listTeams(session) : [];
-
     return (
       <div className="space-y-5">
         <Card className="relative overflow-hidden">
@@ -22,9 +19,13 @@ export default async function BoardPage() {
             Join your team first, then this board will load the shared workflow for backlog, to do, in progress,
             review, and done.
           </p>
+          <Link
+            href="/teams"
+            className="mt-5 inline-flex rounded-2xl border border-[#d5b786] bg-[linear-gradient(135deg,#f6e9cb_0%,#e8c98e_100%)] px-4 py-3 text-sm font-semibold text-ink shadow-[0_16px_36px_-24px_rgba(195,154,95,0.85)] transition hover:-translate-y-0.5 hover:brightness-[1.03]"
+          >
+            Open Team Management
+          </Link>
         </Card>
-
-        <FinalizeTeamPanel teams={teams} />
       </div>
     );
   }
@@ -41,8 +42,6 @@ export default async function BoardPage() {
           Drag tasks between columns to move work forward, then assign owners without the extra board clutter.
         </p>
       </Card>
-
-      <TaskComposer />
 
       <BoardClient
         tasks={snapshot.data.tasks}

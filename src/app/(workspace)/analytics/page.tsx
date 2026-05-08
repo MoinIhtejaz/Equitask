@@ -1,18 +1,15 @@
 import { AnalyticsCharts } from "@/components/analytics/AnalyticsCharts";
-import { FinalizeTeamPanel } from "@/components/dashboard/FinalizeTeamPanel";
 import { FairnessScoreCard } from "@/components/shared/FairnessScoreCard";
 import { Card } from "@/components/ui/Card";
 import { requireWorkspaceSession } from "@/lib/auth/guards";
 import { buildAnalyticsSnapshot } from "@/services/analyticsService";
-import { listTeams } from "@/services/teamService";
 import { getWorkspaceSnapshot } from "@/services/workspaceService";
+import Link from "next/link";
 
 export default async function AnalyticsPage() {
   const session = requireWorkspaceSession();
 
   if (!session.teamId) {
-    const teams = session.mode === "supabase" ? await listTeams(session) : [];
-
     return (
       <div className="space-y-5">
         <Card className="relative overflow-hidden">
@@ -22,9 +19,13 @@ export default async function AnalyticsPage() {
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
             Join your team first, then analytics will load contribution, workload, and progress for the whole group.
           </p>
+          <Link
+            href="/teams"
+            className="mt-5 inline-flex rounded-2xl border border-[#d5b786] bg-[linear-gradient(135deg,#f6e9cb_0%,#e8c98e_100%)] px-4 py-3 text-sm font-semibold text-ink shadow-[0_16px_36px_-24px_rgba(195,154,95,0.85)] transition hover:-translate-y-0.5 hover:brightness-[1.03]"
+          >
+            Open Team Management
+          </Link>
         </Card>
-
-        <FinalizeTeamPanel teams={teams} />
       </div>
     );
   }
