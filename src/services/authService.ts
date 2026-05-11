@@ -37,7 +37,11 @@ export async function signInWithSupabase(email: string, password: string): Promi
 
   const { data, error } = await client.auth.signInWithPassword({ email, password });
 
-  if (error || !data.session || !data.user) {
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data.session || !data.user) {
     throw new Error("Invalid email or password.");
   }
 

@@ -25,12 +25,10 @@ export default async function TeamsPage() {
       {session.teamId ? (
         <TaskComposer />
       ) : (
-        <Card className="border-dashed border-[#c39a5f]/40 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(249,242,228,0.9))]">
-          <p className="section-kicker">Task Intake Locked</p>
-          <h2 className="mt-3 text-2xl font-semibold text-ink">Join a team to launch tasks</h2>
-          <p className="mt-3 text-sm leading-7 text-slate-600">
-            Task creation is managed from this Team page, but it unlocks only after your account is attached to a
-            team workspace.
+        <Card className="border-dashed">
+          <h2 className="text-base font-semibold text-ink">Join a team to create tasks</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Task creation unlocks once your account is attached to a team.
           </p>
         </Card>
       )}

@@ -167,10 +167,10 @@ export function BoardClient({ tasks, members, votes, comments, currentUserId, mo
 
   return (
     <div className="space-y-5">
-      {error ? <p className="rounded-2xl bg-rose-100 p-3 text-sm text-rose-700">{error}</p> : null}
+      {error ? <p className="rounded-md bg-red-50 p-2 text-sm text-red-700">{error}</p> : null}
 
       <div className="overflow-x-auto pb-3">
-        <div className="grid min-w-[1380px] gap-5 xl:grid-cols-5">
+        <div className="grid min-w-[1200px] gap-3 xl:grid-cols-5">
           {STATUS_ORDER.map((status) => {
             const columnTasks = boardTasks.filter((task) => getBoardStatus(task) === status);
             const isDropActive = dropTargetStatus === status;
@@ -203,15 +203,15 @@ export function BoardClient({ tasks, members, votes, comments, currentUserId, mo
                   }
                 }}
                 className={cn(
-                  "rounded-[28px] border p-4 shadow-[0_24px_60px_-42px_rgba(17,20,26,0.28)] backdrop-blur transition-colors",
+                  "rounded-lg border p-3 transition-colors",
                   isDropActive
-                    ? "border-[#c39a5f] bg-[#f7ecda]"
-                    : "border-[#d8c7aa] bg-[#f8f1e4]/95"
+                    ? "border-ink bg-slate-50"
+                    : "border-slate-200 bg-slate-50/60"
                 )}
               >
-                <header className="mb-4 flex items-center justify-between gap-3 border-b border-[#dfcfb3] pb-3">
-                  <h3 className="text-lg font-semibold text-ink">{STATUS_LABELS[status]}</h3>
-                  <Badge className="border-[#1b222c] bg-[#1b222c] text-white">{columnTasks.length}</Badge>
+                <header className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600">{STATUS_LABELS[status]}</h3>
+                  <Badge>{columnTasks.length}</Badge>
                 </header>
 
                 <div
@@ -231,22 +231,13 @@ export function BoardClient({ tasks, members, votes, comments, currentUserId, mo
                   }}
                 >
                   {columnTasks.length === 0 ? (
-                    <div
-                      className={cn(
-                        "rounded-[22px] border border-dashed px-4 py-8 text-center text-sm font-medium transition-colors",
-                        isDropActive
-                          ? "border-[#c39a5f] bg-[#fff7eb] text-[#7c5a28]"
-                          : "border-[#ceb88f] bg-[#fffaf1] text-slate-600"
-                      )}
-                    >
-                      {draggedTaskId ? `Drop here to move into ${STATUS_LABELS[status]}.` : `No tasks in ${STATUS_LABELS[status].toLowerCase()} yet.`}
+                    <div className="rounded-md border border-dashed border-slate-300 px-3 py-6 text-center text-xs text-slate-500">
+                      {draggedTaskId ? `Drop into ${STATUS_LABELS[status]}` : "Empty"}
                     </div>
                   ) : null}
 
                   {columnTasks.map((task) => {
                     const assignee = task.assigneeId ? memberMap.get(task.assigneeId) : null;
-                    const creator = memberMap.get(task.createdById) ?? null;
-                    const creatorName = creator?.name ?? task.createdByName ?? "Unknown member";
                     const assigneeName = assignee?.name ?? task.assigneeName ?? "Unassigned";
                     const votingInsight = getVotingInsight(
                       task,
@@ -283,101 +274,56 @@ export function BoardClient({ tasks, members, votes, comments, currentUserId, mo
                           }
                         }}
                         className={cn(
-                          "cursor-grab space-y-4 border border-[#dac6a3] bg-white p-4 shadow-[0_18px_42px_-32px_rgba(17,20,26,0.5)] transition duration-200 hover:-translate-y-1 hover:border-[#c39a5f] active:cursor-grabbing",
+                          "cursor-grab space-y-3 rounded-md border border-slate-200 bg-white p-3 hover:border-slate-300 active:cursor-grabbing",
                           draggedTaskId === task.id && "opacity-60"
                         )}
                         onClick={() => setSelectedTaskId(task.id)}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <button
-                              type="button"
-                              className="text-left text-base font-semibold leading-6 text-ink underline-offset-2 hover:underline"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setSelectedTaskId(task.id);
-                              }}
-                            >
-                              {task.title}
-                            </button>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                              Drag to move
-                            </p>
-                          </div>
+                        <div className="flex items-start justify-between gap-2">
+                          <button
+                            type="button"
+                            className="text-left text-sm font-semibold text-ink hover:underline"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedTaskId(task.id);
+                            }}
+                          >
+                            {task.title}
+                          </button>
                           <PriorityBadge priority={task.priority} />
                         </div>
 
-                        <p className="text-sm leading-6 text-slate-700">{task.description}</p>
+                        <p className="line-clamp-2 text-xs text-slate-600">{task.description}</p>
 
                         {task.tags.length > 0 ? (
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-1">
                             {task.tags.map((tag) => (
                               <Badge key={tag}>{tag}</Badge>
                             ))}
                           </div>
                         ) : null}
 
-                        <div className="flex flex-wrap gap-x-5 gap-y-2 text-[0.78rem] leading-6 text-slate-600">
-                          <p>
-                            <span className="font-semibold uppercase tracking-[0.16em] text-slate-500">Due</span>
-                            <span className="ml-2 font-semibold text-ink">{formatDate(task.dueDate)}</span>
-                          </p>
-                          <p>
-                            <span className="font-semibold uppercase tracking-[0.16em] text-slate-500">Points</span>
-                            <span className="ml-2 font-semibold text-ink">{task.officialStoryPoints ?? "Pending"}</span>
-                          </p>
-                          <p>
-                            <span className="font-semibold uppercase tracking-[0.16em] text-slate-500">Voting</span>
-                            <span className="ml-2 font-semibold text-ink">
-                              {votingInsight.votedMemberIds.length}/{members.length}
-                            </span>
-                          </p>
-                          <p>
-                            <span className="font-semibold uppercase tracking-[0.16em] text-slate-500">Fit</span>
-                            <span className="ml-2 font-semibold text-ink">{getWorkloadFit(task, memberPoints, averagePoints)}</span>
-                          </p>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
+                          <span>Due <span className="font-medium text-ink">{formatDate(task.dueDate)}</span></span>
+                          <span>Pts <span className="font-medium text-ink">{task.officialStoryPoints ?? "—"}</span></span>
+                          <span>Votes <span className="font-medium text-ink">{votingInsight.votedMemberIds.length}/{members.length}</span></span>
+                          <span className="text-slate-500">{getWorkloadFit(task, memberPoints, averagePoints)}</span>
                         </div>
 
-                        <div className="space-y-3 border-t border-[#ede1cf] pt-4">
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-[#e9dcc8] bg-[#fffaf2] px-3 py-2">
-                              {creator ? <Avatar member={creator} size="sm" /> : null}
-                              <div className="min-w-0">
-                                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                                  Created by
-                                </p>
-                                <p className="truncate text-sm font-semibold text-ink">
-                                  {creatorName}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-[#e9dcc8] bg-[#fffaf2] px-3 py-2">
-                              {assignee ? <Avatar member={assignee} size="sm" /> : null}
-                              <div className="min-w-0">
-                                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                                  Assigned to
-                                </p>
-                                <p className="truncate text-sm font-semibold text-ink">
-                                  {assigneeName}
-                                </p>
-                              </div>
-                            </div>
+                        <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2">
+                          <div className="flex min-w-0 items-center gap-2 text-xs text-slate-600">
+                            {assignee ? <Avatar member={assignee} size="sm" /> : null}
+                            <span className="truncate">{assigneeName}</span>
                           </div>
-
                           <div
-                            className="flex items-center justify-between gap-3"
+                            className="w-32"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                              Update assignee
-                            </p>
-
-                            <div className="w-36">
                             <Select
                               value={task.assigneeId ?? ""}
                               disabled={busyTaskId === task.id}
                               onChange={(event) => updateAssignee(task.id, event.target.value)}
+                              className="py-1 text-xs"
                             >
                               <option value="">Unassigned</option>
                               {members.map((member) => (
@@ -386,7 +332,6 @@ export function BoardClient({ tasks, members, votes, comments, currentUserId, mo
                                 </option>
                               ))}
                             </Select>
-                            </div>
                           </div>
                         </div>
                       </Card>

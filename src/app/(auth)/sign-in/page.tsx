@@ -40,6 +40,20 @@ export default function SignInPage() {
     return () => window.clearInterval(interval);
   }, [isBusy, transitionSteps.length]);
 
+  async function onDemoLogin() {
+    try {
+      setIsBusy(true);
+      setError(null);
+      const response = await fetch("/api/auth/demo", { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Demo login failed.");
+      window.location.assign(payload.redirectTo || "/dashboard");
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : "Demo login failed.");
+      setIsBusy(false);
+    }
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -77,23 +91,9 @@ export default function SignInPage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-10">
       {isBusy ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#090b0f]/80 px-6 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(195,154,95,0.16),transparent_32%),linear-gradient(180deg,#151a22_0%,#0f1319_100%)] p-8 text-white shadow-[0_30px_90px_-40px_rgba(0,0,0,0.95)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[#d6ba87]">Equitask</p>
-            <h2 className="mt-4 text-3xl font-semibold text-[#fff7e8]">Signing you in</h2>
-            <p className="mt-3 text-sm leading-7 text-white/70">{transitionSteps[loadingStep]}</p>
-
-            <div className="mt-6 h-2.5 overflow-hidden rounded-full bg-white/10">
-              <div
-                className="h-full rounded-full bg-[linear-gradient(90deg,#c39a5f_0%,#f0d7a2_50%,#c39a5f_100%)] transition-all duration-500"
-                style={{ width: `${((loadingStep + 1) / transitionSteps.length) * 100}%` }}
-              />
-            </div>
-
-            <div className="mt-6 flex items-center gap-3">
-              <span className="inline-flex h-10 w-10 animate-spin rounded-full border-2 border-[#d6ba87]/25 border-t-[#f0d7a2]" />
-              <p className="text-sm text-white/58">This usually only takes a moment.</p>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40">
+          <div className="rounded-lg border border-slate-200 bg-white px-6 py-4 text-sm text-slate-700 shadow-lg">
+            {transitionSteps[loadingStep]}…
           </div>
         </div>
       ) : null}
@@ -150,6 +150,21 @@ export default function SignInPage() {
             Create an account
           </Link>
         </p>
+
+        <div className="relative flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-200" />
+          <span className="text-xs text-slate-400">or</span>
+          <div className="h-px flex-1 bg-slate-200" />
+        </div>
+
+        <button
+          type="button"
+          onClick={onDemoLogin}
+          disabled={isBusy}
+          className="w-full rounded-xl border border-dashed border-slate-300 py-2.5 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50"
+        >
+          Continue with Demo (no account needed)
+        </button>
       </Card>
     </main>
   );
