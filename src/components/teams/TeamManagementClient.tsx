@@ -91,48 +91,34 @@ export function TeamManagementClient({
 
   return (
     <div className="space-y-5">
-      <Card className="relative overflow-hidden">
-        <div className="absolute inset-y-0 right-0 w-64 bg-[radial-gradient(circle_at_center,rgba(195,154,95,0.18),transparent_72%)]" />
-        <p className="section-kicker">Team Management</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-ink">
-          {activeTeamName ?? "Join your team workspace"}
+      <div>
+        <h1 className="text-2xl font-semibold text-ink">
+          {activeTeamName ?? "Team Management"}
         </h1>
-        <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
-          {activeTeamName
-            ? `${activeProjectName ?? "Project workspace"} is active. Manage members, switch teams, and launch new work from here.`
-            : "Join an existing team by exact name or create a team workspace before opening analytics, voting, and scrum execution."}
-        </p>
-      </Card>
+        {activeTeamName ? (
+          <p className="mt-1 text-sm text-slate-500">{activeProjectName ?? "Project workspace"}</p>
+        ) : (
+          <p className="mt-1 text-sm text-slate-500">Join or create a team workspace.</p>
+        )}
+      </div>
 
-      {error ? <p className="rounded-2xl bg-rose-100 p-3 text-sm text-rose-700">{error}</p> : null}
+      {error ? <p className="rounded-md bg-red-50 p-2 text-sm text-red-700">{error}</p> : null}
 
-      <div className="grid gap-5 xl:grid-cols-[1fr,1fr]">
-        <Card className="space-y-4">
-          <div>
-            <p className="section-kicker">Join Team</p>
-            <h2 className="mt-3 text-2xl font-semibold text-ink">Enter a team name</h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              Use the exact team name your group created, for example "team 05".
-            </p>
-          </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card className="space-y-3">
+          <h2 className="text-base font-semibold text-ink">Join Team</h2>
           <Input
             value={joinTeamName}
             onChange={(event) => setJoinTeamName(event.target.value)}
             placeholder="team 05"
           />
-          <Button className="w-full" disabled={isBusy || !joinTeamName.trim()} onClick={joinTeam}>
-            {isBusy ? "Working..." : "Join Team"}
+          <Button disabled={isBusy || !joinTeamName.trim()} onClick={joinTeam}>
+            {isBusy ? "Working…" : "Join Team"}
           </Button>
         </Card>
 
-        <Card className="space-y-4">
-          <div>
-            <p className="section-kicker">Create Team</p>
-            <h2 className="mt-3 text-2xl font-semibold text-ink">Launch a workspace</h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              Create a team if your group does not already have one.
-            </p>
-          </div>
+        <Card className="space-y-3">
+          <h2 className="text-base font-semibold text-ink">Create Team</h2>
           <Input
             value={newTeamName}
             onChange={(event) => setNewTeamName(event.target.value)}
@@ -141,49 +127,43 @@ export function TeamManagementClient({
           <Input
             value={newProjectName}
             onChange={(event) => setNewProjectName(event.target.value)}
-            placeholder="Equitask Student Collaboration Platform"
+            placeholder="Project name"
           />
           <Button
-            className="w-full"
             variant="secondary"
             disabled={isBusy || !newTeamName.trim() || !newProjectName.trim()}
             onClick={createTeam}
           >
-            {isBusy ? "Working..." : "Create Team"}
+            {isBusy ? "Working…" : "Create Team"}
           </Button>
         </Card>
       </div>
 
       {teams.length > 0 ? (
         <Card>
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="section-kicker">Your Teams</p>
-              <h2 className="mt-3 text-2xl font-semibold text-ink">Available workspaces</h2>
-            </div>
-            <span className="rounded-full border border-[#e2d7c3] bg-white/[0.65] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              {teams.length} joined
-            </span>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-ink">Your Teams</h2>
+            <span className="text-xs text-slate-500">{teams.length}</span>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
             {teams.map((team) => {
               const isActive = team.teamId === activeTeamId;
-
               return (
                 <div
                   key={team.teamId}
-                  className="rounded-[24px] border border-[#e1d4be] bg-white/70 p-5"
+                  className="flex items-center justify-between gap-3 rounded-md border border-slate-200 p-3"
                 >
-                  <p className="text-lg font-semibold text-slate-800">{team.teamName}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{team.projectName}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-ink">{team.teamName}</p>
+                    <p className="truncate text-xs text-slate-500">{team.projectName}</p>
+                  </div>
                   <Button
-                    className="mt-4"
                     variant={isActive ? "ghost" : "secondary"}
                     disabled={isBusy || isActive}
                     onClick={() => activateTeam(team.teamId)}
                   >
-                    {isActive ? "Current Team" : "Open Team"}
+                    {isActive ? "Active" : "Open"}
                   </Button>
                 </div>
               );
@@ -194,27 +174,22 @@ export function TeamManagementClient({
 
       {activeTeamId ? (
         <Card>
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="section-kicker">Members</p>
-              <h2 className="mt-3 text-2xl font-semibold text-ink">Team members</h2>
-            </div>
-            <span className="rounded-full border border-[#e2d7c3] bg-white/[0.65] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              {members.length} member{members.length === 1 ? "" : "s"}
-            </span>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-ink">Members</h2>
+            <span className="text-xs text-slate-500">{members.length}</span>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
             {members.map((member) => (
-              <div key={member.id} className="rounded-[24px] border border-[#e1d4be] bg-white/70 p-5">
-                <div className="flex items-center gap-3">
+              <div key={member.id} className="rounded-md border border-slate-200 p-3">
+                <div className="flex items-center gap-2">
                   <Avatar member={member} />
-                  <div>
-                    <p className="font-semibold text-slate-900">{member.name}</p>
-                    <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{member.role}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-ink">{member.name}</p>
+                    <p className="truncate text-xs text-slate-500">{member.role}</p>
                   </div>
                 </div>
-                <p className="mt-4 text-sm leading-6 text-slate-600">{member.preferredWorkingStyle}</p>
+                <p className="mt-2 text-xs text-slate-600">{member.preferredWorkingStyle}</p>
               </div>
             ))}
           </div>

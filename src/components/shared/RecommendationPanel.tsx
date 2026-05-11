@@ -14,7 +14,7 @@ export function RecommendationPanel({
           <div key={recommendation.memberId} className="rounded-xl border border-slate-200 p-3">
             <div className="flex items-center justify-between">
               <p className="font-semibold text-slate-800">{recommendation.memberName}</p>
-              <p className="text-sm font-semibold text-moss">{recommendation.score}/100</p>
+              <p className="text-sm font-medium text-slate-600">{recommendation.score}/100</p>
             </div>
             <p className="mt-1 text-xs text-slate-500">{recommendation.reason}</p>
           </div>

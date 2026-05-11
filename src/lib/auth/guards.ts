@@ -5,7 +5,7 @@ import { SessionUser } from "@/types";
 
 export function requireWorkspaceSession(): SessionUser {
   const session = getCurrentSession();
-  if (!session || session.mode !== "supabase") {
+  if (!session || (session.mode !== "supabase" && session.mode !== "demo")) {
     redirect("/sign-in");
   }
 
@@ -15,7 +15,7 @@ export function requireWorkspaceSession(): SessionUser {
 export function requireTeamSession(): SessionUser {
   const session = requireWorkspaceSession();
 
-  if (session.mode === "supabase" && !session.teamId) {
+  if (session.mode !== "demo" && !session.teamId) {
     redirect("/dashboard");
   }
 

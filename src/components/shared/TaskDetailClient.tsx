@@ -261,11 +261,6 @@ export function TaskDetailClient({
         <Card>
           <h3 className="mb-3 text-lg font-semibold text-ink">Comments</h3>
 
-          {mode === "supabase" ? (
-            <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900">
-              Comments are encrypted automatically before storage.
-            </p>
-          ) : null}
 
           {mode === "demo" ? (
             <div className="mb-2 max-w-xs">

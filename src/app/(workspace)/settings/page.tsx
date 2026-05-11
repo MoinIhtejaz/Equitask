@@ -8,12 +8,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <h1 className="text-2xl font-bold text-ink">Settings</h1>
-        <p className="mt-1 text-slate-600">
-          Manage mode switching, auth state, and Supabase integration readiness.
-        </p>
-      </Card>
+      <h1 className="text-2xl font-semibold text-ink">Settings</h1>
 
       <Card>
         <h2 className="text-lg font-semibold text-ink">Current Session</h2>
