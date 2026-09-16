@@ -10,11 +10,13 @@ export function Avatar({ member, size = "md" }: AvatarProps) {
 
   return (
     <div
+      role="img"
+      aria-label={member.name}
       title={member.name}
       className={`${dimension} inline-flex items-center justify-center rounded-full border border-white/50 font-semibold text-white shadow-[0_10px_24px_-16px_rgba(17,20,26,0.8)]`}
       style={{ backgroundColor: member.avatarColor }}
     >
-      {member.name.slice(0, 2).toUpperCase()}
+      <span aria-hidden="true">{member.name.slice(0, 2).toUpperCase()}</span>
     </div>
   );
 }
