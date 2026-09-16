@@ -288,6 +288,9 @@ export function Sidebar({ session }: { session: SessionUser }) {
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
+            aria-haspopup="true"
+            aria-expanded={menuOpen}
+            aria-label={`Account menu for ${session.name}`}
             className={cn(
               "group w-full rounded-[26px] border border-white/10 bg-white/[0.06] p-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-[#d8b57d]/[0.26] hover:bg-white/[0.08]",
               isCollapsed && "flex justify-center px-0"
