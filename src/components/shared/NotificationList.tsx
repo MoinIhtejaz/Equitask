@@ -16,6 +16,12 @@ export function NotificationList({ notifications }: { notifications: Notificatio
       </div>
 
       <div className="space-y-3">
+        {notifications.length === 0 ? (
+          <p className="rounded-[22px] border border-dashed border-[#d7c7ab] p-4 text-sm text-slate-600">
+            No notifications yet.
+          </p>
+        ) : null}
+
         {notifications.slice(0, 6).map((notification) => (
           <div
             key={notification.id}
