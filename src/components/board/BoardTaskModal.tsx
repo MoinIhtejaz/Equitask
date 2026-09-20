@@ -7,6 +7,7 @@ import { Avatar } from "@/components/shared/Avatar";
 import { PriorityBadge } from "@/components/shared/PriorityBadge";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { VotingBreakdown } from "@/components/voting/VotingBreakdown";
 import {
@@ -248,11 +249,14 @@ export function BoardTaskModal({
 
           {mode === "demo" ? (
             <div className="mt-4 max-w-xs">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <label
+                htmlFor="comment-as"
+                className="mb-1 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"
+              >
                 Comment as
-              </p>
-              <select
-                className="w-full rounded-2xl border border-[#d7c7ab] bg-white px-3 py-2 text-sm text-ink outline-none"
+              </label>
+              <Select
+                id="comment-as"
                 value={commentAs}
                 onChange={(event) => setCommentAs(event.target.value)}
               >
@@ -261,7 +265,7 @@ export function BoardTaskModal({
                     {member.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           ) : null}
 
