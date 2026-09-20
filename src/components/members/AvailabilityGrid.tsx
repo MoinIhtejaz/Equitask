@@ -55,16 +55,22 @@ export function AvailabilityGrid({ member }: { member: Member }) {
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
           Meeting-Friendly Windows
         </p>
-        <div className="flex flex-wrap gap-2">
-          {meetingFriendlyWindows.map((window) => (
-            <span
-              key={window}
-              className="inline-flex rounded-full bg-sky-100 px-2 py-1 text-xs font-semibold text-sky-700"
-            >
-              {window}
-            </span>
-          ))}
-        </div>
+        {meetingFriendlyWindows.length === 0 ? (
+          <p className="rounded-[22px] border border-dashed border-[#d7c7ab] p-4 text-sm text-slate-600">
+            No availability set yet.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {meetingFriendlyWindows.map((window) => (
+              <span
+                key={window}
+                className="inline-flex rounded-full bg-sky-100 px-2 py-1 text-xs font-semibold text-sky-700"
+              >
+                {window}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </Card>
   );
