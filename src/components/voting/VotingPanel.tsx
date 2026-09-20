@@ -92,7 +92,7 @@ export function VotingPanel({ task, members, votes, currentUserId, mode }: Votin
           </p>
         </div>
         <div className="mt-4 space-y-3">
-        <ProgressBar value={completionPercentage} />
+        <ProgressBar value={completionPercentage} label={`Voting completion ${completionPercentage}%`} />
         {!revealVotes ? (
             <p className="text-sm font-medium leading-6 text-slate-600">
             Vote values stay hidden until the full team has submitted.

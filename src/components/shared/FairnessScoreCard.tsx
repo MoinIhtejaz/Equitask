@@ -18,7 +18,7 @@ export function FairnessScoreCard({ fairness }: { fairness: FairnessResult }) {
       </div>
 
       <div className="mt-6">
-        <ProgressBar value={fairness.score} />
+        <ProgressBar value={fairness.score} label={`Fairness score ${fairness.score} out of 100`} />
       </div>
 
       <p className="mt-5 text-sm leading-7 text-slate-600">{fairness.explanation}</p>
