@@ -51,6 +51,17 @@ export function BoardTaskModal({
   const assigneeName = assignee?.name ?? task.assigneeName ?? "Unassigned";
 
   useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
     if (mode !== "supabase") {
       return;
     }
@@ -134,7 +145,14 @@ export function BoardTaskModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/[0.45] px-4 py-8 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/[0.45] px-4 py-8 backdrop-blur-sm"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div className="lux-surface max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[32px] p-7 shadow-[0_32px_90px_-40px_rgba(17,20,26,0.7)]">
         <div className="flex items-start justify-between gap-3">
           <div>
