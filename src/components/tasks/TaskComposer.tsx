@@ -80,10 +80,14 @@ export function TaskComposer() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <label
+                htmlFor="task-title"
+                className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500"
+              >
                 Task title
               </label>
               <Input
+                id="task-title"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Implement workload fairness recommendation engine"
@@ -91,10 +95,14 @@ export function TaskComposer() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <label
+                htmlFor="task-description"
+                className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500"
+              >
                 Description
               </label>
               <Textarea
+                id="task-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 rows={4}
@@ -103,17 +111,32 @@ export function TaskComposer() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <label
+                htmlFor="task-due-date"
+                className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500"
+              >
                 Due date
               </label>
-              <Input value={dueDate} onChange={(event) => setDueDate(event.target.value)} type="date" />
+              <Input
+                id="task-due-date"
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
+                type="date"
+              />
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <label
+                htmlFor="task-priority"
+                className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500"
+              >
                 Priority
               </label>
-              <Select value={priority} onChange={(event) => setPriority(event.target.value)}>
+              <Select
+                id="task-priority"
+                value={priority}
+                onChange={(event) => setPriority(event.target.value)}
+              >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -122,15 +145,22 @@ export function TaskComposer() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <label
+                htmlFor="task-tags"
+                className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500"
+              >
                 Tags
               </label>
               <Input
+                id="task-tags"
                 value={tags}
                 onChange={(event) => setTags(event.target.value)}
                 placeholder="frontend, analytics, sprint-2"
+                aria-describedby="task-tags-hint"
               />
-              <p className="mt-2 text-xs uppercase tracking-[0.16em] text-slate-500">Separate tags with commas.</p>
+              <p id="task-tags-hint" className="mt-2 text-xs uppercase tracking-[0.16em] text-slate-500">
+                Separate tags with commas.
+              </p>
             </div>
           </div>
 
