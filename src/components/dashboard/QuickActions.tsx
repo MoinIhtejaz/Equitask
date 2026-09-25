@@ -27,7 +27,7 @@ export function QuickActions() {
           <Link
             key={action.href}
             href={action.href}
-            className="rounded-[24px] border border-[#e3d8c6] bg-white/[0.65] p-4 transition duration-300 hover:-translate-y-1 hover:border-[#c39a5f] hover:shadow-[0_26px_70px_-40px_rgba(17,20,26,0.45)]"
+            className="rounded-[24px] border border-[#e3d8c6] bg-white/[0.65] p-4 transition duration-300 hover:-translate-y-1 hover:border-[#c39a5f] hover:shadow-[0_26px_70px_-40px_rgba(17,20,26,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c39a5f] focus-visible:ring-offset-2 focus-visible:ring-offset-veil"
           >
             <Badge className="border-[#d9bf92] bg-[#f5e8ce] text-[#76562a]">{action.tag}</Badge>
             <p className="mt-4 text-lg font-semibold text-slate-800">{action.title}</p>
