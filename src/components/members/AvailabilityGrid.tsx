@@ -14,9 +14,9 @@ export function AvailabilityGrid({ member }: { member: Member }) {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th className="p-2 text-left text-slate-500">Day</th>
+              <th scope="col" className="p-2 text-left text-slate-500">Day</th>
               {TIME_BLOCK_ORDER.map((block) => (
-                <th key={block} className="p-2 text-left text-slate-500">
+                <th key={block} scope="col" className="p-2 text-left text-slate-500">
                   {block}
                 </th>
               ))}
@@ -25,7 +25,9 @@ export function AvailabilityGrid({ member }: { member: Member }) {
           <tbody>
             {WEEKDAY_ORDER.map((day) => (
               <tr key={day} className="border-t border-slate-200">
-                <td className="p-2 capitalize text-slate-700">{day}</td>
+                <th scope="row" className="p-2 text-left font-normal capitalize text-slate-700">
+                  {day}
+                </th>
                 {TIME_BLOCK_ORDER.map((block) => {
                   const available = member.availability.some(
                     (slot) => slot.day === day && slot.block === block
