@@ -123,6 +123,8 @@ export function VotingPanel({ task, members, votes, currentUserId, mode }: Votin
             variant={activeVote === option ? "primary" : "ghost"}
             className="h-14 text-lg"
             disabled={isSaving}
+            aria-pressed={activeVote === option}
+            aria-label={`Vote ${option} story points`}
             onClick={() => castVote(option)}
           >
             {option}
