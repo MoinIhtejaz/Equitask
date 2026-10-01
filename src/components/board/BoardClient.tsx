@@ -376,6 +376,7 @@ export function BoardClient({ tasks, members, votes, comments, currentUserId, mo
                             <div className="w-36">
                             <Select
                               value={task.assigneeId ?? ""}
+                              aria-label={`Update assignee for ${task.title}`}
                               disabled={busyTaskId === task.id}
                               onChange={(event) => updateAssignee(task.id, event.target.value)}
                             >
