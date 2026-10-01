@@ -1,6 +1,6 @@
 "use client";
 
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { Card } from "@/components/ui/Card";
 
@@ -54,6 +54,7 @@ export function ProgressChart({
               strokeDasharray="5 6"
               dot={false}
             />
+            <Legend wrapperStyle={{ fontSize: "12px" }} />
           </LineChart>
         </ResponsiveContainer>
       </div>
