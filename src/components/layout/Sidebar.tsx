@@ -213,6 +213,7 @@ export function Sidebar({ session }: { session: SessionUser }) {
                 key={link.href}
                 href={link.href}
                 title={link.label}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "group relative flex items-center rounded-[22px] px-4 py-3.5 text-sm font-semibold transition-all duration-200",
                   isCollapsed ? "justify-center" : "gap-3",
