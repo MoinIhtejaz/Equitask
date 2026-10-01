@@ -77,7 +77,11 @@ export default function SignInPage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-10">
       {isBusy ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#090b0f]/80 px-6 backdrop-blur-md">
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#090b0f]/80 px-6 backdrop-blur-md"
+        >
           <div className="w-full max-w-md rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(195,154,95,0.16),transparent_32%),linear-gradient(180deg,#151a22_0%,#0f1319_100%)] p-8 text-white shadow-[0_30px_90px_-40px_rgba(0,0,0,0.95)]">
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[#d6ba87]">Equitask</p>
             <h2 className="mt-4 text-3xl font-semibold text-[#fff7e8]">Signing you in</h2>
@@ -91,7 +95,10 @@ export default function SignInPage() {
             </div>
 
             <div className="mt-6 flex items-center gap-3">
-              <span className="inline-flex h-10 w-10 animate-spin rounded-full border-2 border-[#d6ba87]/25 border-t-[#f0d7a2]" />
+              <span
+                aria-hidden="true"
+                className="inline-flex h-10 w-10 animate-spin rounded-full border-2 border-[#d6ba87]/25 border-t-[#f0d7a2]"
+              />
               <p className="text-sm text-white/58">This usually only takes a moment.</p>
             </div>
           </div>
