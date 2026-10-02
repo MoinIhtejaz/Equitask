@@ -10,6 +10,12 @@ export function RecommendationPanel({
     <Card>
       <h3 className="mb-3 text-lg font-semibold text-ink">Assignment Recommendations</h3>
       <div className="space-y-3">
+        {recommendations.length === 0 ? (
+          <p className="rounded-[22px] border border-dashed border-[#d7c7ab] p-4 text-sm text-slate-600">
+            No members to recommend yet.
+          </p>
+        ) : null}
+
         {recommendations.slice(0, 3).map((recommendation) => (
           <div key={recommendation.memberId} className="rounded-[22px] border border-[#e2d6c3] bg-white/[0.65] p-4">
             <div className="flex items-center justify-between">
