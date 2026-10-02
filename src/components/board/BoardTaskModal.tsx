@@ -153,11 +153,18 @@ export function BoardTaskModal({
         }
       }}
     >
-      <div className="lux-surface max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[32px] p-7 shadow-[0_32px_90px_-40px_rgba(17,20,26,0.7)]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="board-task-modal-title"
+        className="lux-surface max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[32px] p-7 shadow-[0_32px_90px_-40px_rgba(17,20,26,0.7)]"
+      >
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="section-kicker">Task window</p>
-            <h2 className="mt-3 text-4xl font-semibold text-ink">{task.title}</h2>
+            <h2 id="board-task-modal-title" className="mt-3 text-4xl font-semibold text-ink">
+              {task.title}
+            </h2>
           </div>
           <Button variant="ghost" onClick={onClose}>
             Close
