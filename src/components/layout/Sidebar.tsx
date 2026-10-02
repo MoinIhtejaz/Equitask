@@ -16,7 +16,7 @@ type LinkItem = {
   icon: (className?: string) => ReactNode;
 };
 
-const LINKS: LinkItem[] = [
+export const LINKS: LinkItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
   { href: "/teams", label: "Team", icon: TeamIcon },
   { href: "/board", label: "Scrum Board", icon: BoardIcon },
@@ -118,7 +118,7 @@ function ExpandIcon(className = "h-4 w-4") {
   );
 }
 
-function matchesPath(pathname: string, href: string) {
+export function matchesPath(pathname: string, href: string) {
   if (href === "/dashboard") {
     return pathname === href;
   }
