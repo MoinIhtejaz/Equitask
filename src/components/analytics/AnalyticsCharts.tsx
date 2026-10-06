@@ -22,6 +22,12 @@ import { AnalyticsSnapshot } from "@/services/analyticsService";
 
 const PIE_COLORS = ["#171d25", "#c39a5f", "#2f6b4f", "#b45f3a", "#8d7350"];
 
+const TOOLTIP_CONTENT_STYLE = {
+  borderRadius: "18px",
+  border: "1px solid rgba(195,154,95,0.2)",
+  background: "rgba(255,249,240,0.95)"
+};
+
 function ChartCard({
   kicker,
   title,
@@ -50,13 +56,7 @@ export function AnalyticsCharts({ analytics }: { analytics: AnalyticsSnapshot })
               <CartesianGrid stroke="rgba(17,20,26,0.08)" strokeDasharray="4 6" vertical={false} />
               <XAxis dataKey="name" tickLine={false} axisLine={false} stroke="#7f6a49" />
               <YAxis allowDecimals={false} tickLine={false} axisLine={false} stroke="#7f6a49" />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "18px",
-                  border: "1px solid rgba(195,154,95,0.2)",
-                  background: "rgba(255,249,240,0.95)"
-                }}
-              />
+              <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} />
               <Bar dataKey="value" fill="#1f3548" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -68,13 +68,7 @@ export function AnalyticsCharts({ analytics }: { analytics: AnalyticsSnapshot })
               <CartesianGrid stroke="rgba(17,20,26,0.08)" strokeDasharray="4 6" vertical={false} />
               <XAxis dataKey="name" tickLine={false} axisLine={false} stroke="#7f6a49" />
               <YAxis tickLine={false} axisLine={false} stroke="#7f6a49" />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "18px",
-                  border: "1px solid rgba(195,154,95,0.2)",
-                  background: "rgba(255,249,240,0.95)"
-                }}
-              />
+              <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} />
               <Bar dataKey="value" fill="#c39a5f" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -96,13 +90,7 @@ export function AnalyticsCharts({ analytics }: { analytics: AnalyticsSnapshot })
               <CartesianGrid stroke="rgba(17,20,26,0.08)" strokeDasharray="4 6" vertical={false} />
               <XAxis dataKey="label" tickLine={false} axisLine={false} stroke="#7f6a49" />
               <YAxis tickLine={false} axisLine={false} stroke="#7f6a49" />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "18px",
-                  border: "1px solid rgba(195,154,95,0.2)",
-                  background: "rgba(255,249,240,0.95)"
-                }}
-              />
+              <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} />
               <Area type="monotone" dataKey="completed" stroke="#171d25" fill="url(#completedArea)" />
               <Area type="monotone" dataKey="total" stroke="#c39a5f" fill="url(#totalArea)" />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
@@ -126,13 +114,7 @@ export function AnalyticsCharts({ analytics }: { analytics: AnalyticsSnapshot })
                   <Cell key={entry.status} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "18px",
-                  border: "1px solid rgba(195,154,95,0.2)",
-                  background: "rgba(255,249,240,0.95)"
-                }}
-              />
+              <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} />
             </PieChart>
           </ResponsiveContainer>
       </ChartCard>
@@ -143,13 +125,7 @@ export function AnalyticsCharts({ analytics }: { analytics: AnalyticsSnapshot })
               <CartesianGrid stroke="rgba(17,20,26,0.08)" strokeDasharray="4 6" vertical={false} />
               <XAxis dataKey="name" tickLine={false} axisLine={false} stroke="#7f6a49" />
               <YAxis tickLine={false} axisLine={false} stroke="#7f6a49" />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "18px",
-                  border: "1px solid rgba(195,154,95,0.2)",
-                  background: "rgba(255,249,240,0.95)"
-                }}
-              />
+              <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} />
               <Bar dataKey="value" fill="#b45f3a" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -161,13 +137,7 @@ export function AnalyticsCharts({ analytics }: { analytics: AnalyticsSnapshot })
               <CartesianGrid stroke="rgba(17,20,26,0.08)" strokeDasharray="4 6" vertical={false} />
               <XAxis dataKey="task" hide />
               <YAxis tickLine={false} axisLine={false} stroke="#7f6a49" />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "18px",
-                  border: "1px solid rgba(195,154,95,0.2)",
-                  background: "rgba(255,249,240,0.95)"
-                }}
-              />
+              <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
               <Bar dataKey="disagreement" fill="#b45f3a" radius={[8, 8, 0, 0]} />
               <Bar dataKey="average" fill="#171d25" radius={[8, 8, 0, 0]} />
