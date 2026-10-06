@@ -169,7 +169,7 @@ export function TaskComposer() {
               type="checkbox"
               checked={votingRequired}
               onChange={(event) => setVotingRequired(event.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-storm focus:ring-storm"
+              className="h-4 w-4 accent-storm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c39a5f] focus-visible:ring-offset-2 focus-visible:ring-offset-veil"
             />
             Require team voting before assignment
           </label>
