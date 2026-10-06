@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { AvailabilityGrid } from "@/components/members/AvailabilityGrid";
 import { Avatar } from "@/components/shared/Avatar";
+import { SummaryCard } from "@/components/shared/SummaryCard";
 import { Card } from "@/components/ui/Card";
 import { requireTeamSession } from "@/lib/auth/guards";
 import { buildMemberSummaries } from "@/services/memberService";
@@ -40,22 +41,10 @@ export default async function MemberProfilePage({ params }: { params: { memberId
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <p className="text-xs text-slate-500">Assigned Tasks</p>
-          <p className="text-2xl font-bold text-ink">{summary?.assignedTaskCount ?? 0}</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-slate-500">Completed Tasks</p>
-          <p className="text-2xl font-bold text-ink">{summary?.completedTaskCount ?? 0}</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-slate-500">Current Workload</p>
-          <p className="text-2xl font-bold text-ink">{summary?.assignedStoryPoints ?? 0} pts</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-slate-500">Reliability</p>
-          <p className="text-2xl font-bold text-ink">{member.reliabilityScore}%</p>
-        </Card>
+        <SummaryCard label="Assigned Tasks" value={summary?.assignedTaskCount ?? 0} />
+        <SummaryCard label="Completed Tasks" value={summary?.completedTaskCount ?? 0} />
+        <SummaryCard label="Current Workload" value={`${summary?.assignedStoryPoints ?? 0} pts`} />
+        <SummaryCard label="Reliability" value={`${member.reliabilityScore}%`} />
       </div>
 
       <AvailabilityGrid member={member} />
