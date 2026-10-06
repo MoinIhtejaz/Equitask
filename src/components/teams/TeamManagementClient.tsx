@@ -116,6 +116,7 @@ export function TeamManagementClient({
             </p>
           </div>
           <Input
+            aria-label="Team name to join"
             value={joinTeamName}
             onChange={(event) => setJoinTeamName(event.target.value)}
             placeholder="team 05"
@@ -134,11 +135,13 @@ export function TeamManagementClient({
             </p>
           </div>
           <Input
+            aria-label="New team name"
             value={newTeamName}
             onChange={(event) => setNewTeamName(event.target.value)}
             placeholder="team 05"
           />
           <Input
+            aria-label="Project name"
             value={newProjectName}
             onChange={(event) => setNewProjectName(event.target.value)}
             placeholder="Equitask Student Collaboration Platform"
