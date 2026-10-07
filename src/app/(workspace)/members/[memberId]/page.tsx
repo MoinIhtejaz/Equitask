@@ -52,11 +52,17 @@ export default async function MemberProfilePage({ params }: { params: { memberId
       <Card>
         <h3 className="mb-3 text-lg font-semibold text-ink">Recent Activity</h3>
         <div className="space-y-2">
-          {recentActivity.map((event) => (
-            <p key={event.id} className="rounded-xl border border-slate-200 p-3 text-sm text-slate-700">
-              {event.message}
+          {recentActivity.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-slate-200 p-3 text-sm text-slate-500">
+              No recent activity for {member.name} yet.
             </p>
-          ))}
+          ) : (
+            recentActivity.map((event) => (
+              <p key={event.id} className="rounded-xl border border-slate-200 p-3 text-sm text-slate-700">
+                {event.message}
+              </p>
+            ))
+          )}
         </div>
       </Card>
     </div>
