@@ -8,7 +8,11 @@ export function MemberSummaryCards({ summaries }: { summaries: MemberSummary[] }
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {summaries.map((summary) => (
-        <Link key={summary.member.id} href={`/members/${summary.member.id}`} className="block">
+        <Link
+          key={summary.member.id}
+          href={`/members/${summary.member.id}`}
+          className="block rounded-[28px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c39a5f] focus-visible:ring-offset-2 focus-visible:ring-offset-veil"
+        >
           <Card className="relative h-full overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_-40px_rgba(17,20,26,0.45)]">
             <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(195,154,95,0.18),transparent_68%)]" />
             <div className="flex items-center gap-3">
