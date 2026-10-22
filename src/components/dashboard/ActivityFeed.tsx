@@ -15,7 +15,7 @@ export function ActivityFeed({
     <Card className="relative overflow-hidden">
       <p className="section-kicker">Recent movement</p>
       <h3 className="mt-3 text-2xl font-semibold text-ink">Activity Feed</h3>
-      <div className="space-y-3">
+      <div className="mt-5 space-y-3">
         {events.length === 0 ? (
           <p className="rounded-[22px] border border-dashed border-[#d7c7ab] p-4 text-sm text-slate-600">
             No activity yet.
