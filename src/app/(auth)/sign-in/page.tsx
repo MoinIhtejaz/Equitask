@@ -121,10 +121,14 @@ export default function SignInPage() {
 
         <form className="space-y-3" onSubmit={onSubmit}>
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label
+              htmlFor="sign-in-email"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               Email
             </label>
             <Input
+              id="sign-in-email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               type="email"
@@ -134,10 +138,14 @@ export default function SignInPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label
+              htmlFor="sign-in-password"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               Password
             </label>
             <Input
+              id="sign-in-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               type="password"

@@ -90,10 +90,14 @@ export default function SignUpPage() {
 
         <form className="space-y-3" onSubmit={onSubmit}>
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label
+              htmlFor="sign-up-name"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               Name
             </label>
             <Input
+              id="sign-up-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
               type="text"
@@ -103,10 +107,14 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label
+              htmlFor="sign-up-email"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               Email
             </label>
             <Input
+              id="sign-up-email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               type="email"
@@ -116,10 +124,14 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label
+              htmlFor="sign-up-password"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
               Password
             </label>
             <Input
+              id="sign-up-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               type="password"
