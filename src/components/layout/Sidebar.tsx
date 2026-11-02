@@ -215,7 +215,7 @@ export function Sidebar({ session }: { session: SessionUser }) {
                 title={link.label}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group relative flex items-center rounded-[22px] px-4 py-3.5 text-sm font-semibold transition-all duration-200",
+                  "group relative flex items-center rounded-[22px] px-4 py-3.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c39a5f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#10151c]",
                   isCollapsed ? "justify-center" : "gap-3",
                   active
                     ? "bg-[linear-gradient(135deg,rgba(255,244,221,0.14),rgba(195,154,95,0.18))] text-[#fff6e4] shadow-[inset_0_0_0_1px_rgba(217,191,146,0.16)]"
