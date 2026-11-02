@@ -2,7 +2,11 @@ import { Card } from "@/components/ui/Card";
 import { NotificationItem } from "@/types";
 import { formatDateTime } from "@/lib/utils";
 
+const MAX_VISIBLE = 6;
+
 export function NotificationList({ notifications }: { notifications: NotificationItem[] }) {
+  const visible = notifications.slice(0, MAX_VISIBLE);
+
   return (
     <Card className="relative overflow-hidden">
       <div className="mb-5 flex items-center justify-between">
@@ -11,7 +15,7 @@ export function NotificationList({ notifications }: { notifications: Notificatio
           <h3 className="mt-3 text-2xl font-semibold text-ink">Notifications</h3>
         </div>
         <span className="rounded-full border border-[#e2d7c3] bg-white/[0.65] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-          {notifications.length} recent
+          {visible.length} recent
         </span>
       </div>
 
@@ -22,7 +26,7 @@ export function NotificationList({ notifications }: { notifications: Notificatio
           </p>
         ) : null}
 
-        {notifications.slice(0, 6).map((notification) => (
+        {visible.map((notification) => (
           <div
             key={notification.id}
             className="rounded-[22px] border border-[#e8dece] bg-white/60 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]"
