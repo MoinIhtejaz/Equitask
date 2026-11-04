@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/Badge";
+import { cn } from "@/lib/utils";
 import { Priority } from "@/types";
 
 const PRIORITY_STYLES: Record<Priority, string> = {
@@ -9,5 +10,5 @@ const PRIORITY_STYLES: Record<Priority, string> = {
 };
 
 export function PriorityBadge({ priority }: { priority: Priority }) {
-  return <Badge className={PRIORITY_STYLES[priority]}>{priority.replace("_", " ")}</Badge>;
+  return <Badge className={cn("capitalize", PRIORITY_STYLES[priority])}>{priority.replace("_", " ")}</Badge>;
 }
