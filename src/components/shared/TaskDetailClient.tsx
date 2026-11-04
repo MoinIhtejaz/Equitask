@@ -42,6 +42,7 @@ export function TaskDetailClient({
 }: TaskDetailClientProps) {
   const router = useRouter();
   const [isBusy, setIsBusy] = useState(false);
+  const [isPostingComment, setIsPostingComment] = useState(false);
   const [comment, setComment] = useState("");
   const [commentAs, setCommentAs] = useState(currentUserId);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +149,7 @@ export function TaskDetailClient({
 
     try {
       setIsBusy(true);
+      setIsPostingComment(true);
       setError(null);
       const trimmedComment = comment.trim();
       const encryptedComment =
@@ -171,6 +173,7 @@ export function TaskDetailClient({
       setError(caughtError instanceof Error ? caughtError.message : "Could not post comment.");
     } finally {
       setIsBusy(false);
+      setIsPostingComment(false);
     }
   }
 
@@ -287,7 +290,7 @@ export function TaskDetailClient({
             rows={3}
           />
           <Button className="mt-2" onClick={submitComment} disabled={isBusy || !comment.trim()}>
-            Post Comment
+            {isPostingComment ? "Posting..." : "Post Comment"}
           </Button>
 
           <div className="mt-4 space-y-3">
