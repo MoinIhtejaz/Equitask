@@ -294,6 +294,12 @@ export function TaskDetailClient({
           </Button>
 
           <div className="mt-4 space-y-3">
+            {comments.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-slate-200 p-3 text-sm text-slate-500">
+                No comments yet.
+              </p>
+            ) : null}
+
             {comments.map((item) => {
               const author = members.find((member) => member.id === item.memberId);
               const displayMessage =
