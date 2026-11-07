@@ -91,8 +91,8 @@ export function AnalyticsCharts({ analytics }: { analytics: AnalyticsSnapshot })
               <XAxis dataKey="label" tickLine={false} axisLine={false} stroke="#7f6a49" />
               <YAxis tickLine={false} axisLine={false} stroke="#7f6a49" />
               <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} />
-              <Area type="monotone" dataKey="completed" stroke="#171d25" fill="url(#completedArea)" />
-              <Area type="monotone" dataKey="total" stroke="#c39a5f" fill="url(#totalArea)" />
+              <Area type="monotone" dataKey="completed" name="Completed" stroke="#171d25" fill="url(#completedArea)" />
+              <Area type="monotone" dataKey="total" name="Total scope" stroke="#c39a5f" fill="url(#totalArea)" />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -139,8 +139,8 @@ export function AnalyticsCharts({ analytics }: { analytics: AnalyticsSnapshot })
               <YAxis tickLine={false} axisLine={false} stroke="#7f6a49" />
               <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
-              <Bar dataKey="disagreement" fill="#b45f3a" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="average" fill="#171d25" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="disagreement" name="Disagreement" fill="#b45f3a" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="average" name="Average" fill="#171d25" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
       </ChartCard>
