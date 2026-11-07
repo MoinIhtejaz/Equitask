@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { APP_NAME } from "@/lib/constants";
@@ -132,6 +132,7 @@ export function Sidebar({ session }: { session: SessionUser }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const initials = session.name.slice(0, 2).toUpperCase();
 
   useEffect(() => {
@@ -148,6 +149,31 @@ export function Sidebar({ session }: { session: SessionUser }) {
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname, isCollapsed]);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
 
   async function signOut() {
     try {
@@ -249,7 +275,7 @@ export function Sidebar({ session }: { session: SessionUser }) {
           })}
         </nav>
 
-        <div className="relative mt-auto pt-6">
+        <div ref={accountMenuRef} className="relative mt-auto pt-6">
           <AnimatePresence>
             {menuOpen ? (
               <motion.div
